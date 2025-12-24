@@ -161,7 +161,25 @@ docker compose exec web rails g model DreamTag dream:references tag:references
 
 ---
 
-### タスク2: モデル実装 (2-3時間)
+### タスク2: モデル層TDD - Red Phase (1時間)
+
+**参照仕様書**:
+- `02_database.md` § Dream モデル
+- `02_database.md` § Tag モデル
+- `02_database.md` § DreamTag モデル（中間テーブル）
+- `02_database.md` § テスト仕様
+
+**実装内容**:
+- FactoryBot定義（User, Dream, Tag, DreamTag）
+- Model specs作成（失敗するテストを先に書く）
+  - バリデーションspec
+  - アソシエーションspec
+  - スコープspec
+  - enumspec
+
+---
+
+### タスク3: モデル層TDD - Green Phase (1.5-2時間)
 
 **参照仕様書**:
 - `02_database.md` § Dream モデル
@@ -169,20 +187,20 @@ docker compose exec web rails g model DreamTag dream:references tag:references
 - `02_database.md` § DreamTag モデル（中間テーブル）
 
 **実装内容**:
-- **Dream モデル**:
-  - enum（emotion_color）
-  - バリデーション（title: 15文字、content: 10,000文字）
-  - 検索スコープ（title + content の LIKE 検索）
-- **Tag モデル**:
-  - enum（category, yomi_index）
-  - バリデーション（name, yomi, yomi_index 必須）
-  - before_validation コールバック（yomi_index 自動生成）
-- **アソシエーション**:
-  - `has_many :through` で Dream ↔ Tag の多対多関係
+- Dream モデル実装（enum, バリデーション, スコープ）
+- Tag モデル実装（enum, バリデーション, コールバック）
+- DreamTag モデル実装（バリデーション、中間テーブル設定）
+- アソシエーション実装（Dream/Tag/DreamTag の has_many :through で多対多関係）
+- テストがすべてパスすることを確認
+
+**完了後の自動処理**:
+- rails-reviewerによるコードレビュー
+- RuboCop/RSpec/Brakeman自動実行
+- レビュー指摘事項の修正（Refactor Phase）
 
 ---
 
-### タスク3: API実装 (3-4時間)
+### タスク4: API層TDD - Red Phase (1-1.5時間)
 
 **参照仕様書**:
 - `03_api.md` § ルーティング設定
@@ -190,30 +208,37 @@ docker compose exec web rails g model DreamTag dream:references tag:references
 - `03_api.md` § Tags API
 
 **実装内容**:
-- `config/routes.rb` 編集（`namespace :api do`）
+- Request specs作成（失敗するテストを先に書く）
+  - Dreams API: index, show, create, update, destroy, search, overflow
+  - Tags API: index, suggest, destroy
+- 認証テスト
+- JSONレスポンス形式テスト
+
+---
+
+### タスク5: API層TDD - Green Phase (2-2.5時間)
+
+**参照仕様書**:
+- `03_api.md` § ルーティング設定
+- `03_api.md` § Dreams API
+- `03_api.md` § Tags API
+
+**実装内容**:
+- `config/routes.rb` 編集（namespace :api）
 - `Api::V1::DreamsController` 実装
   - index, show, create, update, destroy, search, overflow
 - `Api::V1::TagsController` 実装
   - index, suggest, destroy
-- JSON レスポンス形式統一
+- CORS設定（rack-cors gem）
+- 認証設定（Devise authenticate_user!）
+- JSONレスポンス形式統一
+- テストがすべてパスすることを確認
 
-**注意点**:
-- CORS設定（`rack-cors` gem使用）
-- 認証必須（Devise の `authenticate_user!`）
-
----
-
-### タスク4: テスト実装 (1-2時間)
-
-**参照仕様書**:
-- `02_database.md` § テスト仕様
-
-**実装内容**:
-- Model specs（バリデーション、スコープ、enum）
-- Request specs（CRUD + 検索エンドポイント）
-- FactoryBot定義（Dream, Tag, User）
-
-**目標**: テストカバレッジ 80%以上
+**完了後の自動処理**:
+- rails-reviewerによるコードレビュー
+- RuboCop/RSpec/Brakeman自動実行
+- レビュー指摘事項の修正（Refactor Phase）
+- カバレッジ確認（80%以上）
 
 ---
 
