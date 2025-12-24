@@ -74,6 +74,9 @@ GEM
       minitest (>= 5.1)
       securerandom (>= 0.3)
       tzinfo (~> 2.0, >= 2.0.5)
+    annotate (3.2.0)
+      activerecord (>= 3.2, < 8.0)
+      rake (>= 10.4, < 14.0)
     ast (2.4.3)
     base64 (0.3.0)
     bcrypt (3.1.20)
@@ -351,6 +354,7 @@ PLATFORMS
   x86_64-linux-musl
 
 DEPENDENCIES
+  annotate
   bootsnap
   devise (~> 4.9)
   factory_bot_rails (~> 6.2)

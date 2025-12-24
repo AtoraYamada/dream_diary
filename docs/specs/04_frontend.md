@@ -345,7 +345,8 @@ function switchCard() {
 
 /**
  * ログイン処理
- * @param {Object} credentials - { email, password }
+ * @param {Object} credentials - { login, password }
+ * login: email または username
  */
 async function login(credentials) {
   try {
@@ -357,9 +358,18 @@ async function login(credentials) {
     playSound('sfx_boundary_cross.wav'); // 境界を越える音
     navigateWithBlink('library.html');
   } catch (error) {
-    showAuthError('Invalid email or password');
+    showAuthError('Invalid login or password');
   }
 }
+
+/**
+ * 使用例:
+ * // email でログイン
+ * login({ login: 'user@example.com', password: 'password123' });
+ *
+ * // username でログイン
+ * login({ login: 'user1', password: 'password123' });
+ */
 
 /**
  * サインアップ処理

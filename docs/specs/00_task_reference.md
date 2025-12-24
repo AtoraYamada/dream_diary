@@ -88,8 +88,10 @@ docker compose config
 ### タスク3: Devise導入 (1-2時間)
 
 **参照仕様書**:
-- `02_database.md` § users テーブル
+- `02_database.md` § users テーブル（Devise生成）
+- `02_database.md` § 実装ガイドライン
 - `03_api.md` § 認証API
+
 
 **実装内容**:
 - `docker compose exec web rails generate devise:install`
@@ -142,6 +144,7 @@ docker compose config
 **参照仕様書**:
 - `02_database.md` § テーブル定義
 - `02_database.md` § マイグレーションコマンドまとめ
+- `02_database.md` § 実装ガイドライン
 
 **実装内容**:
 - Dream モデル生成
