@@ -69,14 +69,25 @@ end
 
 **エンドポイント**: `POST /users/sign_in`
 
+**認証方式**: email **または** username でログイン可能
+
 **リクエスト**:
 ```json
 {
   "user": {
-    "email": "user@example.com",
+    "login": "user@example.com",  // email または username
     "password": "password123"
   }
 }
+```
+
+**リクエスト例**:
+```json
+// email でログイン
+{ "user": { "login": "user@example.com", "password": "password123" } }
+
+// username でログイン
+{ "user": { "login": "user1", "password": "password123" } }
 ```
 
 **レスポンス（成功: 200 OK）**:
@@ -94,17 +105,22 @@ end
 **レスポンス（失敗: 401 Unauthorized）**:
 ```json
 {
-  "error": "Invalid email or password."
+  "error": "Invalid login or password."
 }
 ```
 
-**実装**:
+**実装** (Day 3 Task 3 で実施):
 ```ruby
 # app/controllers/users/sessions_controller.rb
 class Users::SessionsController < Devise::SessionsController
   respond_to :json
+  before_action :configure_sign_in_params, only: [:create]
 
   private
+
+  def configure_sign_in_params
+    devise_parameter_sanitizer.permit(:sign_in, keys: [:login])
+  end
 
   def respond_with(resource, _opts = {})
     render json: {
@@ -122,6 +138,41 @@ class Users::SessionsController < Devise::SessionsController
   end
 end
 ```
+
+**User モデル** (Day 3 Task 3 で実施):
+```ruby
+# app/models/user.rb
+class User < ApplicationRecord
+  devise :database_authenticatable, :registerable,
+         :recoverable, :rememberable, :validatable
+
+  validates :username, presence: true, uniqueness: { case_sensitive: false }
+
+  # email OR username でログイン可能にする
+  def self.find_for_database_authentication(warden_conditions)
+    conditions = warden_conditions.dup
+    if (login = conditions.delete(:login))
+      where(conditions).where(
+        ["lower(email) = :value OR lower(username) = :value", { value: login.downcase }]
+      ).first
+    elsif conditions.has_key?(:email)
+      where(conditions).first
+    else
+      where(username: conditions[:username]).first
+    end
+  end
+end
+```
+
+**Devise 初期化設定** (Day 3 Task 3 で実施):
+```ruby
+# config/initializers/devise.rb
+config.authentication_keys = [:login]  # email の代わりに login を使用
+```
+
+**注意**:
+- Day 1 では email のみでログイン（Devise デフォルト）
+- Day 3 で email OR username 対応に拡張
 
 ---
 
@@ -163,13 +214,18 @@ end
 }
 ```
 
-**実装**:
+**実装** (Day 3 Task 3 で実施):
 ```ruby
 # app/controllers/users/registrations_controller.rb
 class Users::RegistrationsController < Devise::RegistrationsController
   respond_to :json
+  before_action :configure_sign_up_params, only: [:create]
 
   private
+
+  def configure_sign_up_params
+    devise_parameter_sanitizer.permit(:sign_up, keys: [:username])
+  end
 
   def respond_with(resource, _opts = {})
     if resource.persisted?
@@ -189,6 +245,10 @@ class Users::RegistrationsController < Devise::RegistrationsController
   end
 end
 ```
+
+**Strong Parameters の必要性**:
+- `username` は Devise のデフォルトフィールドではないため、`configure_sign_up_params` で明示的に許可する必要がある
+- 許可しない場合、フロントエンドから送信された `username` が無視される
 
 ---
 

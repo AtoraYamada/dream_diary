@@ -537,5 +537,93 @@ end
 
 ---
 
+## 実装ガイドライン
+
+### マイグレーションコメント
+
+マイグレーションファイルには、テーブルとカラムにコメントを追加してください。
+
+**テーブルコメント**:
+```ruby
+create_table :users, comment: 'ユーザー認証・管理' do |t|
+  # ...
+end
+```
+
+**カラムコメント**:
+```ruby
+t.string :email, null: false, default: "", comment: 'メールアドレス'
+t.string :username, null: false, comment: 'ユーザー名'
+t.datetime :created_at, null: false, comment: '作成日時'
+```
+
+**timestampsコメント**:
+```ruby
+t.timestamps null: false, comment: '作成日時・更新日時'
+```
+
+**効果**:
+- データベース構造の理解が容易になる
+- PostgreSQL の `\d+ table_name` でコメントが表示される
+- チーム開発でのドキュメント性向上
+
+---
+
+### Schema Annotation（annotate gem 使用）
+
+**annotate gem** を使用して、モデルファイルに Schema Information を自動追加します。
+
+#### 使用方法
+
+**全モデルに Schema Information を自動追加**:
+```bash
+docker compose exec web annotate --models
+```
+
+**マイグレーション実行後に自動更新**（推奨）:
+```bash
+# マイグレーション実行
+docker compose exec web rails db:migrate
+
+# annotate 実行
+docker compose exec web annotate --models
+```
+
+#### 生成される Schema Information の例
+
+```ruby
+# == Schema Information
+#
+# Table name: users
+#
+#  id                     :bigint           not null, primary key
+#  email                  :string           default(""), not null
+#  username               :string           not null
+#  encrypted_password     :string           default(""), not null
+#  reset_password_token   :string
+#  reset_password_sent_at :datetime
+#  remember_created_at    :datetime
+#  created_at             :datetime         not null
+#  updated_at             :datetime         not null
+#
+# Indexes
+#
+#  index_users_on_email                 (email) UNIQUE
+#  index_users_on_reset_password_token  (reset_password_token) UNIQUE
+#  index_users_on_username              (username) UNIQUE
+#
+class User < ApplicationRecord
+  # ...
+end
+```
+
+#### 効果
+
+- モデルファイルを開くだけでテーブル構造が分かる
+- カラム名、型、制約、インデックスが一目瞭然
+- マイグレーション後の自動更新で常に最新の状態を保つ
+
+---
+
 このファイルは、データベース設計の実装ガイドです。
 Day 2（モデル生成・実装）で参照してください。
