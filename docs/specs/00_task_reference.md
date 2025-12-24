@@ -104,7 +104,6 @@ docker compose config
 
 **参照仕様書**:
 - `01_overview.md` § テスト環境構成
-- `01_overview.md` § RuboCop設定
 
 **実装内容**:
 
@@ -118,6 +117,14 @@ docker compose config
 - `.rubocop.yml` を作成（`01_overview.md` § RuboCop設定に従う）
 - TargetRubyVersion 3.2、LineLength 120、MethodLength 20 の設定
 - `docker compose exec web rubocop` で動作確認
+
+**Brakeman + CI設定**:
+- Gemfileに`brakeman`を追加（developmentグループ）
+- `.github/workflows/ci.yml`を作成:
+  - RSpecテスト実行
+  - RuboCop lint
+  - Brakemanセキュリティスキャン
+- PR時に自動実行されることを確認
 
 **品質チェックワークフロー確立**:
 - Day 2 以降、各機能実装後に `docker compose exec web bash -c "rubocop && rspec"` を実行する習慣をつける
