@@ -87,7 +87,7 @@ class CreateDreams < ActiveRecord::Migration[7.0]
       t.references :user, null: false, foreign_key: true
       t.string :title, null: false, limit: 15
       t.text :content, null: false
-      t.integer :emotion_color, null: false, default: 0
+      t.integer :emotion_color, null: false
       t.boolean :lucid_dream_flag, default: false
       t.datetime :dreamed_at, null: false
 
@@ -137,12 +137,12 @@ class CreateTags < ActiveRecord::Migration[7.0]
       t.references :user, null: false, foreign_key: true
       t.string :name, null: false
       t.string :yomi, null: false
-      t.string :yomi_index, null: false
+      t.integer :yomi_index, null: false
       t.integer :category, null: false
 
       t.timestamps
 
-      t.index [:user_id, name], unique: true
+      t.index [:user_id, :name], unique: true
       t.index [:user_id, :yomi]
       t.index [:user_id, :yomi_index]
       t.index [:user_id, :category]
@@ -577,7 +577,7 @@ t.timestamps null: false, comment: '作成日時・更新日時'
 
 **全モデルに Schema Information を自動追加**:
 ```bash
-docker compose exec web annotate --models
+docker compose exec web annotate --models -i
 ```
 
 **マイグレーション実行後に自動更新**（推奨）:
@@ -586,7 +586,7 @@ docker compose exec web annotate --models
 docker compose exec web rails db:migrate
 
 # annotate 実行
-docker compose exec web annotate --models
+docker compose exec web annotate --models -i
 ```
 
 #### 生成される Schema Information の例
