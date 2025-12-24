@@ -102,7 +102,7 @@ docker compose config
 
 ---
 
-### タスク4: RSpec + RuboCop環境セットアップ (1.5-2時間)
+### タスク4: RSpec + RuboCop + Brakeman + CI設定環境セットアップ (1.5-2時間)
 
 **参照仕様書**:
 - `01_overview.md` § テスト環境構成
