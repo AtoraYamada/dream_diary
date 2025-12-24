@@ -135,8 +135,12 @@ services:
     depends_on:
       - db
     environment:
-      DATABASE_URL: ${DATABASE_URL}
+      POSTGRES_HOST: db
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
       SECRET_KEY_BASE: ${SECRET_KEY_BASE}
+      RAILS_ENV: ${RAILS_ENV}
 
 volumes:
   postgres_data:
@@ -168,32 +172,57 @@ POSTGRES_PASSWORD=your_secure_password
 POSTGRES_DB=dream_diary_development
 
 # Rails設定
-DATABASE_URL=postgresql://dream_diary_user:your_secure_password@db:5432/dream_diary_development
 SECRET_KEY_BASE=your_secret_key_base_here
 RAILS_ENV=development
+```
 
-# テスト用DB
-TEST_DATABASE_URL=postgresql://dream_diary_user:your_secure_password@db:5432/dream_diary_test
+### database.yml設定
+
+`config/database.yml`で環境変数を使用する設定：
+
+```yaml
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  host: <%= ENV.fetch("POSTGRES_HOST") { "db" } %>
+  username: <%= ENV["POSTGRES_USER"] %>
+  password: <%= ENV["POSTGRES_PASSWORD"] %>
+
+development:
+  <<: *default
+  database: <%= ENV.fetch("POSTGRES_DB") { "dream_diary_development" } %>
+
+test:
+  <<: *default
+  database: dream_diary_test
+
+production:
+  <<: *default
+  database: app_production
 ```
 
 **セットアップ手順**:
 ```bash
 # 1. 環境変数設定
 cp .env.sample .env
-# .env を編集（パスワード等を設定）
 
-# 2. Docker起動
+# 2. SECRET_KEY_BASE生成
+docker compose exec web bundle exec rails secret
+# 生成された値を.envのSECRET_KEY_BASEに設定
+
+# 3. Docker起動
 docker compose up -d
 
-# 3. gem install
+# 4. gem install
 docker compose exec web bundle install
 
-# 4. DB作成・マイグレーション
+# 5. DB作成・マイグレーション
 docker compose exec web rails db:create
 docker compose exec web rails db:migrate
 docker compose exec web rails db:seed
 
-# 5. アセットコンパイル（本番環境の場合）
+# 6. アセットコンパイル（本番環境の場合）
 docker compose exec web rails assets:precompile
 ```
 
@@ -293,7 +322,6 @@ docker compose run --rm web rails new . \
 
 ```ruby
 source 'https://rubygems.org'
-git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
 ruby '~> 3.3.0'
 
@@ -305,6 +333,9 @@ gem 'puma', '~> 6.0'
 # Asset管理
 gem 'sprockets-rails'
 gem 'importmap-rails'
+
+# パフォーマンス
+gem 'bootsnap', require: false
 
 # 認証
 gem 'devise', '~> 4.9'
