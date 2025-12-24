@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>夢日記帳 - 記憶の目録</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script>
+        // チラつき完全防止：URL確認して即座にhtml要素にクラス追加
+        (function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('blink') === 'open') {
+                document.documentElement.classList.add('will-open-eyes');
+            }
+        })();
+    </script>
+    <style>
+        body {
+            /* Asset: bg_library_wall_up (書斎の壁の背景) */
+            background-image: url('assets/bg_library_wall_up.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            cursor: grab;
+            overflow: hidden;
+        }
+
+        /* Page-specific viewport settings (一覧ページ専用) */
+        .viewport-container {
+            /* Asset: bg_library_wall_up (書斎の壁の背景) */
+            background-image: url('assets/bg_library_wall_up.png');
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .bookshelf-display {
+            position: relative;
+            width: 80%; /* Adjust as needed */
+            height: 80%;
+            background-color: #4a2c0f; /* Placeholder for bookshelf */
+            /* background-image: url('assets/img_bookshelf_empty.png'); */ /* Asset: 本棚本体 */
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 5% 0; /* Vertical padding for shelves */
+            box-sizing: border-box;
+            border: 2px solid var(--color-dark-wood); /* Added for visual definition */
+        }
+
+        .book-spines-container {
+            display: flex;
+            flex-wrap: wrap; /* Allows books to wrap to next shelf */
+            gap: 5px; /* Spacing between books */
+            max-width: 90%; /* Keep books within shelf limits */
+            height: 100%;
+            align-content: flex-start; /* Stack books from the top */
+            position: relative;
+            z-index: 2; /* Above bookshelf background */
+        }
+
+        .book-spine {
+            width: 30px; /* Width of a book spine */
+            height: 150px; /* Height of a book spine */
+            position: relative;
+            cursor: pointer;
+            overflow: hidden;
+            /* background-image: url('assets/img_book_spine_base.png'); */ /* Asset: 本：背表紙パーツ (質感透過) */
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+            background-color: var(--color-peace); /* Example emotion color - Placeholder for img_book_spine_base.png texture */
+            border: 1px solid var(--color-brass-dark); /* Added for visual definition */
+            writing-mode: vertical-rl; /* Vertical text */
+            text-orientation: upright;
+            color: var(--color-paper);
+            font-family: var(--font-pixel);
+            font-size: 14px;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+            transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
+        }
+
+        .book-spine:hover {
+            transform: translateY(-5px); /* Slight lift */
+            box-shadow: 4px 4px 10px rgba(0,0,0,0.5);
+        }
+
+        .book-spine::after {
+            content: attr(data-title); /* Use data-title for content */
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0;
+            transition: opacity 0.2s;
+            pointer-events: none; /* Don't block click on spine */
+        }
+        .book-spine:hover::after {
+            opacity: 1; /* Show title on hover */
+        }
+
+        /* Overlay for bookshelf fullness */
+        .library-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            z-index: 1; /* Below book spines */
+            opacity: 0.5; /* Subtle overlay */
+        }
+
+        .library-overlay.small {
+            /* background-image: url('assets/img_library_overlay_small.png'); */ /* Asset: 蔵書テクスチャ（小） */
+            background-color: rgba(139, 69, 19, 0.5); /* Placeholder for small library overlay */
+        }
+        .library-overlay.medium {
+            /* background-image: url('assets/img_library_overlay_medium.png'); */ /* Asset: 蔵書テクスチャ（中） */
+            background-color: rgba(139, 69, 19, 0.6); /* Placeholder for medium library overlay */
+        }
+        .library-overlay.large {
+            /* background-image: url('assets/img_library_overlay_large.png'); */ /* Asset: 蔵書テクスチャ（大） */
+            background-color: rgba(139, 69, 19, 0.7); /* Placeholder for large library overlay */
+        }
+
+        /* Pagination controls */
+        .pagination-left, .pagination-right {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 80px;
+            height: 100px;
+            background-color: rgba(0, 0, 0, 0.3);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 30px;
+            cursor: pointer;
+            z-index: 10;
+            transition: background-color 0.2s;
+        }
+        .pagination-left:hover, .pagination-right:hover {
+            background-color: rgba(0, 0, 0, 0.6);
+        }
+        .pagination-left { left: 0; border-radius: 0 10px 10px 0; }
+        .pagination-right { right: 0; border-radius: 10px 0 0 10px; }
+
+        /* Index Box */
+        .index-box-trigger {
+            position: absolute;
+            bottom: 10%; /* Approximate position */
+            right: 5%;
+            width: 100px;
+            height: 120px;
+            /* background-image: url('assets/img_index_box_exterior.png'); */ /* Asset: 索引箱の外装 */
+            background-color: var(--color-gold); /* Placeholder for index box */
+            border: 2px solid var(--color-brass-dark);
+            border-radius: 5px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            cursor: pointer;
+            z-index: 10;
+            filter: drop-shadow(0px 5px 5px rgba(0,0,0,0.4)); /* Asset: 汎用影テクスチャ */
+        }
+        .index-box-trigger:hover {
+            filter: brightness(1.2) drop-shadow(0px 5px 5px rgba(0,0,0,0.4));
+        }
+
+        /* Back to Library Button */
+        .back-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 40px;
+            height: 40px;
+            /* background-image: url('assets/icon_back.png'); */ /* Asset: 操作アイコン/戻る */
+            background-color: var(--color-ink); /* Placeholder for back button */
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--color-paper);
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 15;
+            filter: drop-shadow(0px 2px 2px rgba(0,0,0,0.4));
+        }
+        .back-button::before {
+            content: "❮"; /* Unicode left arrow */
+        }
+        .back-button:hover {
+            filter: brightness(1.2) drop-shadow(0px 2px 2px rgba(0,0,0,0.4));
+        }
+
+        /* Index Card Modal Overlay */
+        .index-card-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7); /* Dark overlay */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100; /* Above everything else */
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .index-card-modal-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .index-card-modal-overlay .drawer-container {
+             /* Add styles for the drawer container when it's inside the modal */
+            position: relative; /* To position the close button */
+        }
+
+        .index-card-modal-overlay .close-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 30px;
+            height: 30px;
+            background-color: #f00; /* Example close button color */
+            cursor: pointer;
+            z-index: 101; /* Above modal content */
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+            font-family: sans-serif;
+        }
+
+        /* Detail Modal Overlay (詳細表示用モーダル) */
+        .detail-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            background-color: rgba(0, 0, 0, 0.3);
+            z-index: 9000;  /* blink overlay (10000) より低いが、他の要素より高い */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease-out;
+        }
+
+        .detail-modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* Open Book Container (見開き本) */
+        .open-book-container {
+            position: relative;
+            width: 800px; /* Example size */
+            height: 500px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            filter: drop-shadow(0px 10px 15px rgba(0,0,0,0.7)); /* Asset: 汎用影テクスチャ */
+        }
+
+        .book-frame {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            /* Asset: img_book_open_frame.png (開かれた本のフレーム) */
+            /* background-image: url('assets/img_book_open_frame.png'); */
+            background-color: transparent; /* Placeholder - frame will be implied by page borders */
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+            z-index: 3;
+            border: 3px solid var(--color-dark-wood); /* Added border to imply book frame */
+            border-radius: 10px;
+        }
+
+        .book-page {
+            position: absolute;
+            width: 45%; /* Each page takes almost half the book frame width */
+            height: 90%; /* Height of page */
+            top: 5%;
+            background-color: var(--color-paper); /* Default paper color */
+            padding: 20px;
+            box-sizing: border-box;
+            overflow-y: auto;
+            font-family: var(--font-serif);
+            font-size: 16px;
+            line-height: 1.6;
+            color: var(--color-ink);
+            -ms-overflow-style: none; scrollbar-width: none;
+            z-index: 1; /* Below frame */
+        }
+        .book-page::-webkit-scrollbar { display: none; }
+
+        .book-page-left {
+            left: 5%; /* Adjusted position */
+            /* Asset: img_book_open_left_page.png (開かれた本の左ページ) */
+            /* background-image: url('assets/img_book_open_left_page.png'); */
+            background-size: cover;
+            background-blend-mode: multiply; /* Blend page texture with background color */
+            border-right: 2px solid rgba(0,0,0,0.3); /* Added border to simulate spine shadow */
+        }
+
+        .book-page-right {
+            right: 5%; /* Adjusted position */
+            /* Asset: img_book_open_right_page.png (開かれた本の右ページ) */
+            /* background-image: url('assets/img_book_open_right_page.png'); */
+            background-size: cover;
+            background-blend-mode: multiply; /* Blend page texture with background color */
+            border-left: 2px solid rgba(0,0,0,0.3); /* Added border to simulate spine shadow */
+        }
+
+        /* Edit and Delete buttons for detail modal */
+        .hourglass-delete-btn {
+            position: fixed;
+            bottom: calc(5% + 20px);  /* Bottom of modal viewport area + margin */
+            right: calc(5% + 20px);   /* Right of modal viewport area + margin */
+            width: 60px;
+            height: 60px;
+            /* Asset: icon_hourglass_antique.png (アンティーク砂時計アイコン) */
+            /* background-image: url('assets/icon_hourglass_antique.png'); */
+            background-color: var(--color-brass); /* Placeholder for hourglass icon */
+            border-radius: 30% 30% 50% 50%; /* Hourglass shape approximation */
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            cursor: pointer;
+            z-index: 9100;  /* Above modal overlay but below blink */
+            filter: drop-shadow(0px 5px 5px rgba(0,0,0,0.4));
+            border: 2px solid var(--color-brass-dark);
+        }
+        .hourglass-delete-btn:hover {
+            filter: brightness(1.2) drop-shadow(0px 5px 5px rgba(0,0,0,0.4));
+            animation: rotate-hourglass 1s infinite linear;
+        }
+
+        @keyframes rotate-hourglass {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .edit-quill-knife-btn {
+            position: fixed;
+            bottom: calc(5% + 100px);  /* Above hourglass */
+            right: calc(5% + 20px);     /* Same right position as hourglass */
+            width: 60px;
+            height: 60px;
+            /* Asset: icon_edit_quill_knife.png (羽ペンとナイフの編集アイコン) */
+            /* background-image: url('assets/icon_edit_quill_knife.png'); */
+            background-color: var(--color-ink-light); /* Placeholder for quill/knife icon */
+            clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); /* Diamond shape approximation for knife */
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            cursor: pointer;
+            z-index: 9100;  /* Above modal overlay but below blink */
+            filter: drop-shadow(0px 5px 5px rgba(0,0,0,0.4));
+            border: 2px solid var(--color-brass-dark);
+        }
+        .edit-quill-knife-btn:hover {
+            filter: brightness(1.2) drop-shadow(0px 5px 5px rgba(0,0,0,0.4));
+        }
+    </style>
+</head>
+<body>
+    <!-- 4:3 Viewport with outer wall as background (from 5.5) -->
+    <div class="viewport-container">
+        <!-- インタラクティブ要素: ライブラリへ戻るボタン -->
+        <div class="back-button" id="back-to-library-button"></div>
+
+        <div class="bookshelf-display">
+            <!-- Asset: img_bookshelf_empty.png is background (本棚本体) -->
+            <div class="library-overlay medium" id="library-overlay"></div> <!-- Placeholder for fullness (蔵書量に応じたテクスチャオーバーレイ) -->
+
+            <div class="book-spines-container" id="book-spines-container">
+                <!-- Example book spines (本の背表紙) -->
+                <div class="book-spine" data-title="最初の夢" data-id="1" style="background-color: var(--color-peace);"></div>
+                <div class="book-spine" data-title="混沌の夜" data-id="2" style="background-color: var(--color-chaos);"></div>
+                <div class="book-spine" data-title="恐怖の影" data-id="3" style="background-color: var(--color-fear);"></div>
+                <div class="book-spine" data-title="高揚の空" data-id="4" style="background-color: var(--color-elation);"></div>
+                <div class="book-spine" data-title="古城の秘密" data-id="5" style="background-color: var(--color-peace);"></div>
+                <div class="book-spine" data-title="森の記憶" data-id="6" style="background-color: var(--color-peace);"></div>
+                <div class="book-spine" data-title="無限回廊" data-id="7" style="background-color: var(--color-chaos);"></div>
+                <div class="book-spine" data-title="忘れられた歌" data-id="8" style="background-color: var(--color-fear);"></div>
+                <div class="book-spine" data-title="星の彼方" data-id="9" style="background-color: var(--color-elation);"></div>
+                <div class="book-spine" data-title="月の涙" data-id="10" style="background-color: var(--color-peace);"></div>
+                <div class="book-spine" data-title="古びた地図" data-id="11" style="background-color: var(--color-chaos);"></div>
+                <div class="book-spine" data-title="砂の城" data-id="12" style="background-color: var(--color-fear);"></div>
+            </div>
+        </div>
+
+        <div class="pagination-left" id="pagination-left">❮</div>
+        <div class="pagination-right" id="pagination-right">❯</div>
+
+        <!-- インタラクティブ要素: 索引箱トリガー。クリックで索引カードモーダルを開く。 -->
+        <div class="index-box-trigger" id="index-box-trigger"></div>
+    </div>
+
+    <!-- Detail Modal (詳細表示用) -->
+    <div class="detail-modal-overlay" id="detail-modal-overlay">
+        <div class="open-book-container">
+            <div class="book-frame"></div>
+            <div class="book-page book-page-left" id="left-page">
+                <!-- 左ページの内容が動的に挿入されます -->
+            </div>
+            <div class="book-page book-page-right" id="right-page">
+                <!-- 右ページの内容が動的に挿入されます -->
+            </div>
+        </div>
+        <!-- 編集ボタン（羽ペンとペーパーナイフ） -->
+        <div class="edit-quill-knife-btn interactive-object" id="detail-edit-button"></div>
+        <!-- 削除ボタン（砂時計） -->
+        <div class="hourglass-delete-btn interactive-object" id="detail-delete-button"></div>
+    </div>
+
+    <!-- Index Card Modal -->
+    <div class="index-card-modal-overlay" id="index-card-modal">
+        <div class="drawer-container">
+    <header class="drawer-header">
+        <div class="selected-tags-area" id="selected-tags">
+            <span class="label">選択中の索引：</span>
+            <!-- 選択されたタグがここに表示されます -->
+        </div>
+        <div class="search-bars">
+            <input type="text" id="tag-filter-input" placeholder="タグを絞り込む...">
+            <input type="text" id="body-search-input" placeholder="記憶の本文を探索...">
+        </div>
+    </header>
+
+    <main class="drawer-content">
+        <div class="card-list-area" id="card-list">
+            <div class="tag-card" data-tag-name="古びた洋館" data-tag-yomi="ふるびたようかん">
+                <div class="tag-title">古びた洋館</div>
+                <div class="tag-description">（場所）地下室の奥で…</div>
+                <div class="delete-tag-icon" title="このタグを削除"></div>
+            </div>
+            <div class="tag-card" data-tag-name="背の高い友人" data-tag-yomi="せのたかいゆうじん">
+                <div class="tag-title">背の高い友人</div>
+                <div class="tag-description">（人物）いつも隣にいる</div>
+            </div>
+            <div class="tag-card" data-tag-name="記憶の砂時計" data-tag-yomi="きおくのすなどけい">
+                <div class="tag-title">記憶の砂時計</div>
+                <div class="tag-description">（物）時間の流れを示す</div>
+            </div>
+            <div class="tag-card" data-tag-name="森の深淵" data-tag-yomi="もりのしんえん">
+                <div class="tag-title">森の深淵</div>
+                <div class="tag-description">（場所）呼んでいる声が…</div>
+            </div>
+            <div class="tag-card" data-tag-name="謎の少女" data-tag-yomi="なぞのしょうじょ">
+                <div class="tag-title">謎の少女</div>
+                <div class="tag-description">（人物）白いワンピース</div>
+            </div>
+            <div class="tag-card" data-tag-name="書斎の番人" data-tag-yomi="しょさいのばんにん">
+                <div class="tag-title">書斎の番人</div>
+                <div class="tag-description">（人物）動かない老人</div>
+            </div>
+            <div class="tag-card" data-tag-name="安らぎの木陰" data-tag-yomi="やすらぎのこかげ">
+                <div class="tag-title">安らぎの木陰</div>
+                <div class="tag-description">（場所）穏やかな光</div>
+            </div>
+            <div class="tag-card" data-tag-name="鍵束" data-tag-yomi="かぎたば">
+                <div class="tag-title">鍵束</div>
+                <div class="tag-description">（物）多くの扉を開く</div>
+            </div>
+            <div class="tag-card" data-tag-name="幻想の蝶" data-tag-yomi="げんそうのちょう">
+                <div class="tag-title">幻想の蝶</div>
+                <div class="tag-description">（生物）ひらひらと舞う</div>
+            </div>
+            <div class="tag-card" data-tag-name="歪んだ回廊" data-tag-yomi="ゆがんだかいろう">
+                <div class="tag-title">歪んだ回廊</div>
+                <div class="tag-description">（場所）どこへ続くのか</div>
+            </div>
+        </div>
+        <div class="index-plate-container">
+            <div class="index-plate">あ</div> <div class="index-plate">か</div> <div class="index-plate">さ</div>
+            <div class="index-plate">た</div> <div class="index-plate">な</div> <div class="index-plate">は</div>
+            <div class="index-plate">ま</div> <div class="index-plate">や</div> <div class="index-plate">ら</div>
+            <div class="index-plate">わ</div> <div class="index-plate">英</div> <div class="index-plate">他</div>
+        </div>
+    </main>
+
+    <footer class="drawer-footer">
+        <button class="action-button" id="match-button">抽出</button>
+        <button class="action-button" id="reset-button">開架</button>
+    </footer>
+</div>
+    </div>
+
+    <script src="js/script.js"></script>
+    <script>
+        // グローバル関数: 詳細モーダルを開く
+        function openDetailModalInList(bookId) {
+            const detailModalOverlay = document.getElementById('detail-modal-overlay');
+            const leftPage = document.getElementById('left-page');
+            const rightPage = document.getElementById('right-page');
+
+            console.log('[openDetailModalInList] Starting detail modal open sequence for book:', bookId);
+
+            // 瞬き演出を実行（閉眼）
+            closeEyes(() => {
+                console.log('[openDetailModalInList] Eyes closed, displaying modal...');
+
+                // closeEyesのコールバック：300ms後に実行される（閉眼完了）
+                // モーダルを表示
+                detailModalOverlay.classList.add('active');
+
+                // 見開き本に内容を表示
+                leftPage.innerHTML = `
+                    <p>左ページの内容。これは夢日記の詳細表示画面です。ここに夢の内容が記述されます。昔々、あるところに…。</p>
+                    <p>夜の帳が降り、静寂が世界を包み込む頃、私の意識は深い森の奥へと誘われた。そこには古びた石の門があり、蔦に覆われたその扉は、まるで遥か昔からそこに存在し続けているかのように見えた。微かな月明かりが、湿った土の道を照らし、私の足元に細く白い筋を描き出していた。</p>
+                    <p>門の向こうには、霧に霞む庭園が広がっていた。手入れのされていない薔薇の木々が、鋭い棘を夜空に突き刺し、その先にはさらに古い洋館の影が横たわっていた。窓は全て黒く、まるで巨大な眼窩のようだった。私は恐怖と好奇心に駆られ、一歩、また一歩と、その未知の領域へと足を踏み入れた。</p>
+                `;
+
+                rightPage.innerHTML = `
+                    <p>右ページの内容。続きや詳細情報がここに表示されます。この夢は安らぎの色に染まっていた。</p>
+                    <p>洋館の中は、外観とは裏腹に、不思議なほど温かい空気に満ちていた。薄暗いホールには、埃を被った肖像画が何枚も飾られており、彼らの視線が私を追っているかのように感じられた。遠くから微かに聞こえるオルゴールの音色は、どこか懐かしく、しかし同時に不穏な響きを帯びていた。</p>
+                    <p>私は最奥の部屋へと導かれた。そこには、大きな窓から差し込む満月光を浴びて、一冊の古めかしい本が開かれていた。羊皮紙のページには、理解できない古代文字が記されており、私はその意味を探ろうと、必死に目を凝らした。その瞬間、窓の外から眩い光が差し込み、私の意識は急激に覚醒へと向かっていった。</p>
+                `;
+
+                // 開眼を実行（50msの小さなバッファを追加して、モーダル表示を確実に）
+                console.log('[openDetailModalInList] Opening eyes...');
+                setTimeout(() => {
+                    console.log('[openDetailModalInList] Calling openEyes()...');
+                    openEyes();
+                }, 50);
+            });
+        }
+
+        // グローバル関数: 詳細モーダルを閉じる
+        function closeDetailModalInList() {
+            const detailModalOverlay = document.getElementById('detail-modal-overlay');
+
+            // モーダルを非表示（瞬き演出なし）
+            detailModalOverlay.classList.remove('active');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check for opening eyes animation (from page transition)
+            checkAndOpenEyes();
+
+            const backButton = document.getElementById('back-to-library-button');
+            const bookSpinesContainer = document.getElementById('book-spines-container');
+            const paginationLeft = document.getElementById('pagination-left');
+            const paginationRight = document.getElementById('pagination-right');
+            const indexBoxTrigger = document.getElementById('index-box-trigger');
+            const libraryOverlay = document.getElementById('library-overlay');
+            const detailModalOverlay = document.getElementById('detail-modal-overlay');
+
+            // Index Card Modal elements
+            const indexCardModal = document.getElementById('index-card-modal');
+
+            // 詳細モーダル外クリックで閉じる
+            detailModalOverlay.addEventListener('click', (e) => {
+                if (e.target === detailModalOverlay) {
+                    closeDetailModalInList();
+                }
+            });
+
+            // Simulate bookshelf fullness based on number of books
+            function updateLibraryOverlay() {
+                const bookCount = bookSpinesContainer.children.length;
+                libraryOverlay.classList.remove('small', 'medium', 'large');
+                if (bookCount > 0 && bookCount <= 5) {
+                    libraryOverlay.classList.add('small'); // Asset: 蔵書テクスチャ（小）
+                } else if (bookCount > 5 && bookCount <= 10) {
+                    libraryOverlay.classList.add('medium'); // Asset: 蔵書テクスチャ（中）
+                } else if (bookCount > 10) {
+                    libraryOverlay.classList.add('large'); // Asset: 蔵書テクスチャ（大）
+                }
+            }
+            updateLibraryOverlay(); // Initial update
+
+            backButton.addEventListener('click', () => {
+                playSound('sfx_ui_confirm.wav'); // Asset: 選択・決定音
+                navigateWithBlink('library.html');
+            });
+
+            // Book spine click to detail modal (モーダル方式)
+            bookSpinesContainer.addEventListener('click', (event) => {
+                const bookSpine = event.target.closest('.book-spine');
+                if (bookSpine) {
+                    const bookId = bookSpine.dataset.id;
+                    playSound('sfx_ui_confirm.wav'); // Asset: 選択・決定音
+                    console.log(`Clicked book with ID: ${bookId}`);
+
+                    // list.html内のモーダル関数を呼び出す
+                    openDetailModalInList(bookId);
+                }
+            });
+
+            // Pagination (placeholder)
+            paginationLeft.addEventListener('click', () => {
+                playSound('sfx_screen_slide.wav'); // Asset: 画面スライド音
+                initiateBlinkTransition(() => {
+                    console.log('Navigate to previous page of books');
+                    // In a real app, load previous page data here
+                });
+            });
+
+            paginationRight.addEventListener('click', () => {
+                playSound('sfx_screen_slide.wav'); // Asset: 画面スライド音
+                initiateBlinkTransition(() => {
+                    console.log('Navigate to next page of books');
+                    // In a real app, load next page data here
+                });
+            });
+
+            // Index Box click to open modal
+            indexBoxTrigger.addEventListener('click', () => {
+                playSound('sfx_index_box_open_close.wav'); // Asset: 索引箱の開閉音
+                initiateBlinkTransition(() => {
+                    console.log('Opening index card modal');
+                    indexCardModal.classList.add('visible');
+                    initIndexCardModal(); // Initialize modal functionality
+                });
+            });
+
+
+            // Close modal by clicking outside the drawer
+            indexCardModal.addEventListener('click', (event) => {
+                if (event.target === indexCardModal) {
+                    playSound('sfx_index_box_open_close.wav'); // Asset: 索引箱の開閉音
+                    initiateBlinkTransition(() => {
+                        console.log('Closing index card modal by overlay click');
+                        indexCardModal.classList.remove('visible');
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

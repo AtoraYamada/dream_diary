@@ -1,0 +1,480 @@
+@import url('https://fonts.googleapis.com/css2?family=DotGothic16&family=Sawarabi+Mincho&display=swap');
+
+:root {
+    /* Fonts */
+    --font-pixel: 'DotGothic16', monospace; /* Asset: ドットゴシック体フォント */
+    --font-serif: 'Sawarabi Mincho', serif; /* Asset: さわらび明朝体フォント */
+
+    /* Colors for wooden elements */
+    --color-dark-wood: #3a2e2b; /* Asset: 暗い木材の質感 */
+    --color-light-wood: #5c4e48; /* Asset: 明るい木材の質感 */
+
+    /* Colors for paper/ink */
+    --color-paper: #e6d7b2; /* Asset: 紙の質感 */
+    --color-ink: #3e2723; /* Asset: インクの質感 */
+    --color-ink-light: #5d4037; /* Asset: 薄いインクの質感 */
+
+    /* Colors for brass/metal elements */
+    --color-brass: #c9b183; /* Asset: 真鍮の質感 */
+    --color-brass-dark: #7c6d54; /* Asset: 暗い真鍮の質感 */
+
+    /* Colors for UI elements */
+    --color-pin-head: #e57373; /* Asset: ピンの頭の色 (例: タグのピン) */
+
+    /* Emotion Colors (from 5.6.4) */
+    --color-peace: #78909c;   /* 安らぎの感情色 */
+    --color-chaos: #7e57c2;   /* 混沌の感情色 */
+    --color-fear: #424242;    /* 恐怖の感情色 */
+    --color-elation: #d84315; /* 高揚の感情色 */
+
+    /* Viewport size (from 5.5) */
+    --viewport-width: 320px; /* 4:3アスペクト比の基準幅 */
+    --viewport-height: 240px; /* 4:3アスペクト比の基準高さ */
+}
+
+/* Awakening mode: blur viewport and body background */
+html.awakening .viewport-container {
+    filter: blur(20px) brightness(0.9);
+}
+
+html.awakening body::before {
+    filter: blur(20px) brightness(0.9);
+    /* Expand size to push blurred edges outside viewport */
+    top: -10%;
+    left: -10%;
+    width: 120%;
+    height: 120%;
+}
+
+body {
+    margin: 0;
+    font-family: var(--font-serif);
+    color: var(--color-ink);
+    /* Asset: bg_stone_wall_dark.png (外壁背景: 暗い石壁) */
+    background-image: url('../assets/bg_stone_wall_dark.png');
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow: hidden;
+    cursor: default;
+}
+
+/* 余白（額縁）の背景 */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('../assets/bg_stone_wall_dark.png');
+    background-size: cover;
+    background-position: center;
+    z-index: -1;
+}
+
+/* Retro Shader (from 5.3) */
+.retro-shader {
+    filter: contrast(1.1) brightness(0.9) sepia(0.1); /* PS1風レトロフィルター効果 */
+    image-rendering: pixelated; /* ピクセルアートのようなレンダリング */
+}
+
+/* 4:3 viewport container (from 5.5) - Height maximized */
+.viewport-container {
+    position: relative;
+    height: 95vh; /* Maximize height (95% to leave small margin) */
+    width: calc(95vh * 4 / 3); /* Calculate width to maintain 4:3 ratio */
+    max-width: 95vw; /* Don't exceed viewport width */
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    background-color: black; /* メインコンテンツ領域のデフォルト背景 */
+    box-shadow: 0 0 50px rgba(0,0,0,0.8); /* 外壁との分離を強調する影 */
+    border: 2px solid var(--color-brass-dark); /* ビューポートのフレーム */
+    /* Retro shader effect (from 5.3) */
+    filter: contrast(1.1) brightness(0.9) sepia(0.1);
+    image-rendering: pixelated;
+}
+
+/* Removed: .outer-wall - now body background serves as the outer wall */
+
+/* Blinking transition overlay (from 5.6.2) */
+/* 上下から黒い幕が閉じる演出 */
+.blink-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 10000; /* 全ての要素の一番上に表示 */
+    pointer-events: none; /* オーバーレイ自体はクリック不可 */
+    overflow: hidden;
+    isolation: isolate; /* Parent filters (awakening mode) won't affect this element */
+}
+
+/* 上側の黒い幕 */
+.blink-overlay::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 50vh;
+    background-color: #000;
+    transform: translateY(-100%); /* 初期状態: 上に完全に隠れている */
+}
+
+/* 下側の黒い幕 */
+.blink-overlay::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 50vh;
+    background-color: #000;
+    transform: translateY(100%); /* 初期状態: 下に完全に隠れている */
+}
+
+/* 目を閉じる（上下から中央へ） */
+.blink-overlay.closing::before {
+    transform: translateY(0); /* 上から下へ降りてくる（画面の上半分を覆う） */
+    transition: transform 0.3s ease-out;
+}
+
+.blink-overlay.closing::after {
+    transform: translateY(0); /* 下から上へ上がってくる（画面の下半分を覆う） */
+    transition: transform 0.3s ease-out;
+}
+
+/* 目を開く（中央から上下へ） */
+.blink-overlay.opening::before {
+    transform: translateY(-100%); /* 上へ戻る */
+    transition: transform 0.5s ease-in;
+}
+
+.blink-overlay.opening::after {
+    transform: translateY(100%); /* 下へ戻る */
+    transition: transform 0.5s ease-in;
+}
+
+/* ページ読み込み時の初期状態：目を閉じた状態（チラつき防止用） */
+.blink-overlay.initial-closed::before {
+    transform: translateY(0); /* 上半分を覆う */
+    transition: none; /* 初期表示なのでアニメーションなし */
+}
+
+.blink-overlay.initial-closed::after {
+    transform: translateY(0); /* 下半分を覆う */
+    transition: none; /* 初期表示なのでアニメーションなし */
+}
+
+/* URL parameter based blink transition (チラつき完全防止) */
+/* blink=open パラメータがある場合、ページ全体を最初から暗転 */
+html.will-open-eyes::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #000;
+    z-index: 99999; /* 全ての要素より上 */
+    pointer-events: none;
+}
+
+/* Common interactive element styles */
+.interactive-object {
+    cursor: pointer; /* インタラクティブな要素のカーソル */
+    transition: filter 0.2s ease-in-out; /* ホバー時のフィルター変化アニメーション */
+}
+
+.interactive-object:hover {
+    filter: brightness(1.2); /* 微かな発光効果 (CSS Filter: brightness) */
+}
+
+/* UI elements */
+.action-button {
+    padding: 10px 40px;
+    font-family: var(--font-pixel);
+    font-size: 18px;
+    color: var(--color-paper);
+    background-color: var(--color-ink-light);
+    border: 2px solid var(--color-brass);
+    cursor: pointer;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.3); /* Asset: 汎用影テクスチャ */
+    transition: background-color 0.2s;
+    text-decoration: none; /* ボタンとしてスタイルされたアンカータグ用 */
+    display: inline-block;
+    text-align: center;
+}
+
+.action-button:hover {
+    background-color: var(--color-ink);
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Styles for Index Card Modal */
+.drawer-container {
+    width: 800px;
+    height: 600px;
+    background-color: var(--color-light-wood); /* Asset: 木の質感のある背景 */
+    border: 5px solid #2a221f; /* Asset: 暗い縁取り */
+    box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.7), 0 10px 20px rgba(0, 0, 0, 0.5); /* Asset: 汎用影テクスチャ */
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.drawer-header {
+    padding: 15px 20px;
+    border-bottom: 2px solid var(--color-brass-dark); /* Asset: 暗い真鍮の区切り線 */
+    background: rgba(0,0,0,0.1);
+}
+
+.selected-tags-area {
+    min-height: 30px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.selected-tags-area .label {
+    font-family: var(--font-pixel);
+    color: var(--color-paper);
+    font-size: 14px;
+}
+
+.tag-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 8px;
+    background-color: var(--color-paper); /* Asset: 紙の質感 */
+    border: 1px solid var(--color-brass-dark); /* Asset: 暗い真鍮の縁取り */
+    font-family: var(--font-pixel);
+    font-size: 12px;
+    color: var(--color-ink);
+    border-radius: 4px;
+    box-shadow: 1px 1px 2px rgba(0,0,0,0.2); /* Asset: 汎用影テクスチャ */
+}
+
+.tag-badge .remove-btn {
+    margin-left: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.search-bars {
+    margin-top: 10px;
+    display: flex;
+    gap: 15px;
+}
+
+.search-bars input {
+    flex-grow: 1;
+    padding: 8px;
+    background-color: var(--color-paper); /* Asset: 紙の質感 */
+    border: 1px solid var(--color-brass-dark); /* Asset: 暗い真鍮の縁取り */
+    font-family: var(--font-pixel);
+    color: var(--color-ink);
+    font-size: 16px;
+    box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.2); /* Asset: 汎用影テクスチャ */
+}
+ .search-bars input::placeholder {
+    color: var(--color-ink-light); /* Asset: 薄いインクの色 */
+    opacity: 0.7;
+}
+
+.drawer-content {
+    flex-grow: 1;
+    position: relative;
+    display: flex;
+    overflow: hidden;
+}
+
+.card-list-area {
+    flex-grow: 1;
+    padding: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    gap: 15px;
+    overflow-y: auto;
+    -ms-overflow-style: none; scrollbar-width: none;
+}
+.card-list-area::-webkit-scrollbar { display: none; }
+
+.index-plate-container {
+    position: absolute;
+    right: 0px; top: 0; bottom: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    padding: 10px 0;
+    background-color: rgba(42, 34, 31, 0.7); /* Asset: 暗い木材の半透明な背景 */
+    border-left: 2px solid var(--color-brass); /* Asset: 真鍮の区切り線 */
+    box-shadow: -5px 0 10px rgba(0, 0, 0, 0.5); /* Asset: 汎用影テクスチャ */
+    z-index: 100;
+}
+
+.index-plate {
+    width: 40px; height: 30px;
+    background-color: var(--color-brass); /* Asset: 真鍮の質感 */
+    border: 1px solid var(--color-brass-dark); /* Asset: 暗い真鍮の縁取り */
+    display: flex; justify-content: center; align-items: center;
+    font-family: var(--font-pixel);
+    color: #2a221f; font-size: 16px; cursor: pointer;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3); /* Asset: 汎用影テクスチャ */
+    transform: translateX(10px); /* デフォルトで少し隠れる */
+    transition: transform 0.2s ease-in-out;
+}
+.index-plate:hover { transform: translateX(0px); } /* ホバーで完全に表示 */
+
+.tag-card {
+    width: 180px; height: 100px;
+    position: relative; /* ピン留めアイコンの配置用 */
+    background-color: var(--color-paper); /* Asset: 紙の質感 */
+    border: 1px solid var(--color-brass-dark); /* Asset: 暗い真鍮の縁取り */
+    box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.4); /* Asset: 汎用影テクスチャ */
+    padding: 10px;
+    font-family: var(--font-pixel);
+    color: var(--color-ink); font-size: 14px;
+    line-height: 1.4; cursor: pointer;
+    transition: transform 0.3s ease-out, box-shadow 0.3s ease-out, opacity 0.3s;
+    transform-origin: bottom left;
+    opacity: 1;
+}
+
+.tag-card.filtered-out {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* ピン留めアイコン */
+.tag-card.selected::after {
+    content: '';
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 12px;
+    height: 12px;
+    background-color: var(--color-pin-head); /* Asset: ピンの頭の色 */
+    border-radius: 50%;
+    border: 2px solid #fff;
+    box-shadow: 0 0 5px var(--color-pin-head); /* Asset: 発光するピン */
+}
+
+.tag-card:not(.selected):hover {
+    transform: translateY(-5px) scale(1.03);
+    box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.6);
+    z-index: 10;
+}
+
+.tag-title { font-weight: bold; margin-bottom: 5px; text-align: center; pointer-events: none; }
+.tag-description { font-size: 11px; color: var(--color-ink-light); pointer-events: none; }
+
+.drawer-footer {
+    padding: 15px;
+    text-align: center;
+    border-top: 2px solid var(--color-brass-dark); /* Asset: 暗い真鍮の区切り線 */
+    background: rgba(0,0,0,0.1);
+    display: flex; /* ボタンを横並びにするため */
+    justify-content: center; /* 中央に配置 */
+    gap: 15px; /* ボタン間のスペース */
+}
+/* action-button already defined in style.css */
+
+/* Delete Tag Icon Styles */
+.delete-tag-icon {
+    position: absolute;
+    bottom: 8px; /* Adjust position */
+    right: 8px;  /* Adjust position */
+    width: 24px;
+    height: 24px;
+    background-color: rgba(150, 150, 150, 0.5); /* Grey placeholder background */
+    border: 1px solid var(--color-brass-dark);
+    cursor: pointer;
+    opacity: 0.8; /* Subtle by default */
+    transition: opacity 0.2s, background-color 0.2s;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: var(--font-pixel);
+    font-size: 10px; /* Smaller text */
+    color: var(--color-ink); /* Text color */
+    z-index: 15; /* Ensure it's above other elements if needed */
+}
+
+.delete-tag-icon::before {
+    content: 'IMG'; /* Placeholder text for image - Asset: 破れた紙片 */
+    line-height: 1; /* Align vertically */
+}
+
+.delete-tag-icon:hover {
+    opacity: 1;
+    background-color: rgba(180, 180, 180, 0.7); /* Lighter grey on hover */
+}
+
+/* Deletion Effect Animation */
+@keyframes crumble-and-fade {
+    0% {
+        opacity: 1;
+        transform: scale(1) rotate(0deg) translateY(0px) translateX(0px);
+        filter: blur(0px);
+    }
+    25% {
+        transform: scale(1.02) rotate(1deg) translateY(-2px) translateX(1px);
+    }
+    50% {
+        opacity: 0.7;
+        transform: scale(0.95) rotate(-3deg) translateY(5px) translateX(-3px);
+        filter: blur(1px);
+    }
+    75% {
+        opacity: 0.3;
+        transform: scale(0.8) rotate(5deg) translateY(10px) translateX(5px);
+        filter: blur(2px);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(0.5) rotate(10deg) translateY(20px) translateX(-10px);
+        filter: blur(3px);
+        pointer-events: none; /* Make it unclickable after fading */
+    }
+}
+
+.tag-card.is-deleting {
+    animation: crumble-and-fade 0.8s forwards; /* Apply animation and keep final state */
+}
+
+/* Modal specific styles */
+.index-card-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.7); /* 暗いオーバーレイ */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.3s ease-out, visibility 0.3s ease-out;
+}
+
+.index-card-modal-overlay.active,
+.index-card-modal-overlay.visible {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}

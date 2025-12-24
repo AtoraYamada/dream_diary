@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>夢日記帳 - 静寂の書斎</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script>
+        // チラつき完全防止：URL確認して即座にhtml要素にクラス追加
+        (function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('blink') === 'open') {
+                document.documentElement.classList.add('will-open-eyes');
+            }
+        })();
+    </script>
+    <style>
+        body {
+            /* Asset: bg_library_desk.png (書斎の机の背景) */
+            background-image: url('assets/bg_library_desk.png');
+            background-size: cover;
+            background-position: center;
+            font-family: var(--font-serif);
+            color: var(--color-ink);
+            cursor: grab;
+            overflow: hidden;
+        }
+
+        /* Page-specific viewport background (書斎ページ専用背景) */
+        .viewport-container {
+            /* Asset: bg_library_desk.png (書斎の机の背景) */
+            background-image: url('assets/bg_library_desk.png');
+            background-size: cover;
+            background-position: center;
+        }
+
+        /* Interactive areas (objects) - Positioning based on bg_library_desk.png */
+        /* These positions are approximate and would need fine-tuning with the actual image */
+
+        /* Desk / Scroll (夢を編む) */
+        .interactive-area.desk-scroll {
+            position: absolute;
+            width: 25%;
+            height: 30%;
+            left: 50%;
+            bottom: 1%;
+            transform: translateX(-50%);
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            /* Asset: 巻物：上端/下端 (img_scroll_top_bottom.png) - not directly used here but implied for interaction */
+        }
+
+        /* 縮小版巻物UI（机上）5.4.2. 参照 */
+        .desk-scroll-mini {
+            position: relative;
+            width: 60px; /* 縮小版のサイズ */
+            height: 45px;
+            margin-top: 5px; /* テキスト下に5pxの隙間 */
+            z-index: 9; /* desk-scrollより低い */
+            cursor: pointer;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        .desk-scroll-mini.hidden {
+            display: none;
+        }
+
+        /* 縮小版巻物のプレースホルダー（仮プロトタイプ） */
+        .scroll-mini-placeholder {
+            width: 100%;
+            height: 100%;
+            background-color: var(--color-paper);
+            border: 1px solid var(--color-brass-dark);
+            border-radius: 2px;
+            opacity: 0.7;
+            /* Asset: 巻物のテクスチャ (tex_paper_fiber.png) */
+            /* background-image: url('assets/tex_paper_fiber.png'); */
+            background-size: cover;
+            box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.2), 0 2px 4px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Bookshelf (記憶の目録) */
+        .interactive-area.bookshelf {
+            position: absolute;
+            width: 40%; /* Example size */
+            height: 60%;
+            left: 50%; /* Approximate position */
+            top: 10%;
+            transform: translateX(-50%);
+            z-index: 5;
+            /* Asset: 本棚本体 (img_bookshelf_empty.png) */
+        }
+
+        /* Window (夢の氾濫) */
+        .interactive-area.window {
+            position: absolute;
+            width: 20%;
+            height: 40%;
+            left: 5%;
+            top: 20%;
+            z-index: 7;
+            /* Asset: overlay_window_mirror_distortion.png for effect */
+        }
+
+        /* Mirror (目覚める / Logout) */
+        .interactive-area.mirror {
+            position: absolute;
+            width: 15%;
+            height: 35%;
+            right: 5%;
+            top: 25%;
+            z-index: 8;
+        }
+
+        /* Dream Flood Overlay */
+        .dream-flood-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 15;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease-in-out;
+            /* Asset: overlay_window_mirror_distortion.png (窓の歪み/ミラー効果オーバーレイ) */
+            /* background-image: url('assets/overlay_window_mirror_distortion.png'); */
+            background-color: rgba(75, 0, 130, 0.3); /* Placeholder for window/mirror distortion */
+            background-size: cover;
+            animation: distort-noise 1s infinite alternate; /* Continuous subtle distortion */
+        }
+
+        .dream-flood-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        @keyframes distort-noise {
+            0% { filter: hue-rotate(0deg) blur(0px); }
+            100% { filter: hue-rotate(360deg) blur(1px); }
+        }
+
+        .dream-fragment-text {
+            color: var(--color-paper);
+            font-family: var(--font-pixel);
+            font-size: 20px;
+            text-align: center;
+            padding: 20px;
+            background-color: rgba(0, 0, 0, 0.5);
+            border: 2px solid var(--color-brass);
+            max-width: 80%;
+            position: relative;
+            /* Mirror text effect */
+            transform: scaleX(-1);
+        }
+
+        .dream-fragment-text:hover {
+            transform: scaleX(1); /* Flip to normal on hover */
+            filter: brightness(1.5);
+        }
+
+        /* Create/Edit Modal Overlay (書斎から夢を編むへ) */
+        .create-edit-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 9000;  /* blink overlay (10000) より低いが、他の要素より高い */
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease-out;
+        }
+
+        .create-edit-modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* Background blur layer (背景のぼかし層 - オーバーレイの背後) */
+        .create-edit-modal-overlay::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0);
+            filter: blur(8px) brightness(0.6);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* Scroll Middle Animation (scroll-middleの展開・収縮) */
+        @keyframes scroll-unfurl {
+            from {
+                height: 0;
+                opacity: 0;
+            }
+            to {
+                height: calc(95vh * 0.7 - 60px);  /* scroll-top(30px) + scroll-bottom(30px) を差し引く */
+                opacity: 1;
+            }
+        }
+
+        @keyframes scroll-roll-up {
+            from {
+                height: calc(95vh * 0.7 - 60px);
+                opacity: 1;
+            }
+            to {
+                height: 0;
+                opacity: 0;
+            }
+        }
+
+        /* Scroll Container (巻物の構造) */
+        .scroll-container {
+            display: flex;
+            flex-direction: column;
+            width: calc(95vh * 4 / 3 * 0.8);  /* viewport幅の80% */
+            height: auto;  /* 子要素のサイズに応じて自動調整 */
+            margin: 0 auto;  /* 中央に配置 */
+            margin-top: calc(95vh * 0.05);  /* 上からの余白 */
+            position: relative;
+            z-index: 10;
+            /* Asset: tex_shadow_general.png (汎用影テクスチャ) */
+            /* background-image: bottom / 100% auto no-repeat url('assets/tex_shadow_general.png'); */
+            filter: drop-shadow(0px 10px 10px rgba(0,0,0,0.5)); /* 暫定的なドロップシャドウ */
+            background-color: var(--color-paper); /* Default paper color */
+            transition: background-color 0.5s ease-in-out; /* For emotion coloring */
+        }
+
+        /* scroll-middle の展開・収縮アニメーション */
+        .scroll-middle.unfurl {
+            animation: scroll-unfurl 0.6s ease-out forwards;
+        }
+
+        .scroll-middle.roll-up {
+            animation: scroll-roll-up 0.6s ease-in forwards;
+        }
+
+        .scroll-top {
+            width: 100%;
+            height: 30px;
+            /* Asset: img_scroll_top_bottom.png (巻物：上端) */
+            /* background-image: url('assets/img_scroll_top_bottom.png'); */
+            background-color: var(--color-paper);
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            /* 仮状態：視認用 */
+            border-bottom: 3px dashed var(--color-brass-dark);
+        }
+
+        .scroll-middle {
+            height: 0;  /* 初期状態：閉じている */
+            padding: 30px;
+            /* Asset: tex_paper_fiber.png (紙の繊維テクスチャ) */
+            /* background-image: url('assets/tex_paper_fiber.png'); */
+            background-color: var(--color-paper);  /* 感情彩色が上書きされる */
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .scroll-middle textarea {
+            width: 100%;
+            height: 200px;
+            border: none;
+            background-color: transparent;
+            font-family: var(--font-serif);
+            font-size: 16px;
+            color: var(--color-ink);
+            resize: none;
+        }
+
+        .scroll-middle textarea:focus {
+            outline: none;
+        }
+
+        .tag-input-area {
+            margin-top: 20px;
+        }
+
+        .tag-input-area h3 {
+            font-size: 14px;
+            margin: 10px 0 5px 0;
+            color: var(--color-ink);
+        }
+
+        .tag-input-area input {
+            width: 100%;
+            padding: 5px;
+            border: 1px solid var(--color-brass-dark);
+            background-color: rgba(255, 255, 255, 0.8);
+            color: var(--color-ink);
+            font-family: var(--font-serif);
+            margin-bottom: 10px;
+        }
+
+        .selected-tags-area {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+
+        .tag-badge {
+            background-color: var(--color-brass-dark);
+            color: var(--color-paper);
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .tag-badge .remove-btn {
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .scroll-bottom {
+            width: 100%;
+            height: 30px;
+            /* Asset: img_scroll_top_bottom.png (巻物：下端・上下反転) */
+            /* background-image: url('assets/img_scroll_top_bottom.png'); */
+            /* transform: scaleY(-1); */ /* 上下反転 */
+            background-color: var(--color-paper);
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            /* 仮状態：視認用 */
+            border-top: 3px dashed var(--color-brass-dark);
+        }
+
+        /* Emotion Ink Bottles (4色のインク瓶 - モーダル右側に配置) */
+        .ink-bottles {
+            position: fixed;
+            top: calc(5% + 20px);  /* ビューポート上部外側 */
+            right: calc(5% + 20px);   /* ビューポート右側外側 */
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 9100;  /* モーダルオーバーレイより上、blink より下 */
+        }
+
+        .ink-bottle {
+            width: 60px;
+            height: 80px;
+            /* Asset: img_ink_bottle_base.png (質感透過) */
+            /* background-image: url('assets/img_ink_bottle_base.png'); */
+            background-color: transparent; /* Make it transparent */
+            border: 1px solid var(--color-brass-dark); /* Add a border for definition */
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            cursor: pointer;
+            position: relative;
+            transition: filter 0.2s;
+            filter: drop-shadow(0px 5px 5px rgba(0,0,0,0.4)); /* Asset: 汎用影テクスチャ */
+        }
+        .ink-bottle:hover {
+            filter: brightness(1.2) drop-shadow(0px 5px 5px rgba(0,0,0,0.4));
+        }
+
+        /* Inner color for ink bottle to simulate texture transparency */
+        .ink-bottle::before {
+            content: '';
+            position: absolute;
+            top: 25%; /* Adjust to cover ink area */
+            left: 25%;
+            width: 50%;
+            height: 50%;
+            border-radius: 50%; /* Simulate liquid surface */
+            background-color: currentColor; /* Will use the set color */
+            z-index: -1; /* Behind the bottle texture */
+            transition: background-color 0.5s ease-in-out;
+        }
+
+        .ink-bottle.peace::before { color: var(--color-peace); }
+        .ink-bottle.chaos::before { color: var(--color-chaos); }
+        .ink-bottle.fear::before { color: var(--color-fear); }
+        .ink-bottle.elation::before { color: var(--color-elation); }
+
+        .ink-bottle.selected {
+            border: 2px solid var(--color-brass); /* Highlight selected */
+            filter: brightness(1.5) drop-shadow(0px 5px 10px currentColor);
+        }
+
+        /* Silver Bookmark (Save Button - モーダル右下に配置) */
+        .save-bookmark {
+            position: fixed;
+            bottom: calc(5% + 20px);  /* ビューポート下部外側 */
+            right: calc(5% + 20px);   /* ビューポート右側外側 */
+            width: 50px;
+            height: 80px;
+            /* Asset: icon_bookmark_silver.png */
+            background-color: silver; /* Placeholder for icon_bookmark_silver.png */
+            /* background-image: url('assets/icon_bookmark_silver.png'); */
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            cursor: pointer;
+            z-index: 9100;  /* モーダルオーバーレイより上、blink より下 */
+            transition: transform 0.2s, filter 0.2s;
+            filter: drop-shadow(0px 5px 5px rgba(0,0,0,0.4)); /* Asset: 汎用影テクスチャ */
+            border: 1px solid gray; /* Added for visual definition */
+        }
+
+        .save-bookmark:hover {
+            transform: translateY(-5px);
+            filter: brightness(1.2) drop-shadow(0px 5px 5px rgba(0,0,0,0.4));
+        }
+
+        /* Silver Bookmark Glow Animation (保存時の発光演出) */
+        @keyframes bookmark-glow {
+            0% {
+                box-shadow: 0 0 0px rgba(255, 255, 255, 0);
+                filter: brightness(1);
+            }
+            50% {
+                box-shadow: 0 0 15px rgba(255, 215, 0, 0.8);  /* 金色で発光 */
+                filter: brightness(1.3);
+            }
+            100% {
+                box-shadow: 0 0 0px rgba(255, 255, 255, 0);
+                filter: brightness(1);
+            }
+        }
+
+        .save-bookmark.glow {
+            animation: bookmark-glow 0.3s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <!-- 4:3 Viewport with outer wall as background (from 5.5) -->
+    <div class="viewport-container">
+        <!-- Asset: bg_library_desk.png applied as body background -->
+
+        <div class="interactive-area desk-scroll interactive-object" id="desk-scroll">
+            <!-- インタラクティブ要素: 机の上の巻物。クリックで「夢を編む」ページへ遷移。 -->
+            <p style="color:white; text-align:center;">夢を編む (作成)</p>
+
+            <!-- 縮小版巻物UI（机上）5.4.2. 参照 -->
+            <div class="desk-scroll-mini interactive-object" id="desk-scroll-mini">
+                <!-- 仮プロトタイプ：作成時のUIを小型化。アセット到着時に差し替え予定 -->
+                <div class="scroll-mini-placeholder"></div>
+            </div>
+        </div>
+
+        <div class="interactive-area bookshelf interactive-object" id="bookshelf">
+            <!-- インタラクティブ要素: 本棚。クリックで「記憶の目録」ページへ遷移。 -->
+            <p style="color:white; text-align:center;">記憶の目録 (一覧)</p>
+        </div>
+
+        <div class="interactive-area window interactive-object" id="window">
+            <!-- インタラクティブ要素: 窓。クリックで「夢の氾濫」特殊ギミックを発動。 -->
+            <p style="color:white; text-align:center;">窓 (夢の氾濫)</p>
+        </div>
+
+        <div class="interactive-area mirror interactive-object" id="mirror">
+            <!-- インタラクティブ要素: 鏡。クリックで「目覚める」（ログアウト処理）を発動。 -->
+            <p style="color:white; text-align:center;">鏡 (目覚める)</p>
+        </div>
+
+        <!-- Dream Flood Overlay -->
+        <div class="dream-flood-overlay" id="dream-flood-overlay">
+            <div class="dream-fragment-text">
+                <p>「遠くで鐘が鳴っている」</p>
+                <p>「鍵は開いたままだ」</p>
+                <p>「しかし、誰もそこにはいない」</p>
+                <p>「霧が、深く、深く…」</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create/Edit Modal Overlay -->
+    <div class="create-edit-modal-overlay" id="create-edit-modal-overlay">
+        <div class="scroll-container" id="scroll-container">
+            <div class="scroll-top"></div>
+            <div class="scroll-middle">
+                <textarea id="dream-textarea" placeholder="夢の内容をここに書き記す..."></textarea>
+                <div class="tag-input-area">
+                    <h3>登場人物</h3>
+                    <input type="text" id="character-tag-input" placeholder="登場人物名を入力">
+                    <div id="character-tags-display" class="selected-tags-area"></div>
+                    <h3>場所</h3>
+                    <input type="text" id="location-tag-input" placeholder="場所名を入力">
+                    <div id="location-tags-display" class="selected-tags-area"></div>
+                </div>
+            </div>
+            <div class="scroll-bottom"></div>
+        </div>
+        <!-- Emotion Ink Bottles (4色のインク瓶) -->
+        <div class="ink-bottles">
+            <div class="ink-bottle peace interactive-object" data-emotion="peace"></div>
+            <div class="ink-bottle chaos interactive-object" data-emotion="chaos"></div>
+            <div class="ink-bottle fear interactive-object" data-emotion="fear"></div>
+            <div class="ink-bottle elation interactive-object" data-emotion="elation"></div>
+        </div>
+        <!-- Silver Bookmark (Save Button) -->
+        <div class="save-bookmark interactive-object" id="library-save-bookmark"></div>
+    </div>
+
+    <script src="js/script.js"></script>
+    <script>
+        // グローバル関数: 作成編集モーダルを開く
+        function openCreateEditModal(isEdit = false) {
+            const createEditModalOverlay = document.getElementById('create-edit-modal-overlay');
+            const scrollMiddle = document.querySelector('.scroll-middle');
+            const deskScrollMini = document.getElementById('desk-scroll-mini');
+
+            console.log('[openCreateEditModal] Starting create/edit modal open sequence, isEdit:', isEdit);
+
+            // 瞬き演出を実行
+            closeEyes(() => {
+                console.log('[openCreateEditModal] Eyes closed, displaying modal...');
+
+                // 瞬き中に縮小版巻物を非表示にする（机の上の巻物が手に取られた感覚を演出）
+                if (deskScrollMini) {
+                    deskScrollMini.classList.add('hidden');
+                    console.log('[openCreateEditModal] Desk scroll mini hidden during blink');
+                }
+
+                // 瞬き中にモーダルオーバーレイを表示（巻物は見えない状態：scroll-middle height 0）
+                createEditModalOverlay.classList.add('active');
+
+                // 開眼を実行（50msの小さなバッファを追加して、モーダル表示を確実に）
+                console.log('[openCreateEditModal] Opening eyes...');
+                setTimeout(() => {
+                    console.log('[openCreateEditModal] Calling openEyes()...');
+                    openEyes();
+
+                    // 目が開いた後、点滅アニメーション完了後に巻物の展開アニメーションを開始
+                    setTimeout(() => {
+                        console.log('[openCreateEditModal] Starting scroll-middle unfurl animation...');
+                        scrollMiddle.classList.add('unfurl');
+                        // playSound('sfx_scroll_unfurl.wav'); // Asset: 巻物を広げる音
+                    }, 500); // openEyes()の点滅アニメーション完了を待つ
+                }, 50);
+            });
+        }
+
+        // グローバル関数: 作成編集モーダルを閉じる
+        function closeCreateEditModal() {
+            const createEditModalOverlay = document.getElementById('create-edit-modal-overlay');
+            const scrollMiddle = document.querySelector('.scroll-middle');
+            const deskScrollMini = document.getElementById('desk-scroll-mini');
+
+            console.log('[closeCreateEditModal] Starting close sequence...');
+
+            // 巻物収縮アニメーション開始
+            console.log('[closeCreateEditModal] Starting scroll-middle roll-up animation...');
+            scrollMiddle.classList.remove('unfurl');
+            scrollMiddle.classList.add('roll-up');
+            // playSound('sfx_scroll_roll_up.wav'); // Asset: 巻物の収束音
+
+            // 巻物収縮完了後に瞬きを実行（巻物から本への遷移を隠蔽、または机に戻す）
+            setTimeout(() => {
+                console.log('[closeCreateEditModal] Starting blink animation after scroll collapse...');
+
+                closeEyes(() => {
+                    console.log('[closeCreateEditModal] Eyes closed, preparing modal closure...');
+
+                    // 瞬き中にモーダルを閉じる
+                    createEditModalOverlay.classList.remove('active');
+                    scrollMiddle.classList.remove('unfurl', 'roll-up');
+
+                    // 瞬き明け
+                    setTimeout(() => {
+                        console.log('[closeCreateEditModal] Opening eyes and restoring desk scroll mini...');
+                        openEyes();
+                    }, 50);
+
+                    // 縮小版巋物を瞬きのタイミングで確実に再表示
+                    setTimeout(() => {
+                        if (deskScrollMini) {
+                            deskScrollMini.classList.remove('hidden');
+                            console.log('[closeCreateEditModal] Desk scroll mini shown - returned to desk');
+                        }
+                    }, 100); // 瞬き明けのアニメーション完了後に表示
+                });
+            }, 600); // 巻物アニメーション時間に合わせる（0.6s = 600ms）
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check for opening eyes animation (from page transition)
+            checkAndOpenEyes();
+
+            const deskScroll = document.getElementById('desk-scroll');
+            const bookshelf = document.getElementById('bookshelf');
+            const windowElement = document.getElementById('window');
+            const mirror = document.getElementById('mirror');
+            const dreamFloodOverlay = document.getElementById('dream-flood-overlay');
+            const createEditModalOverlay = document.getElementById('create-edit-modal-overlay');
+
+            // Play ambient sound (placeholder)
+            // Commented out: playSound('sfx_library_ambience.mp3'); // Asset: 書斎の環境音 (loop)
+
+            // Desk/Scroll click (夢を編む機能への遷移 - モーダル方式)
+            deskScroll.addEventListener('click', () => {
+                playSound('sfx_ui_confirm.wav'); // Asset: 選択・決定音
+                openCreateEditModal(false); // false = 新規作成モード
+            });
+
+            // Create/Edit Modal: 外クリックで閉じる
+            createEditModalOverlay.addEventListener('click', (e) => {
+                if (e.target === createEditModalOverlay) {
+                    closeCreateEditModal();
+                    playSound('sfx_ui_confirm.wav'); // Asset: 選択・決定音
+                }
+            });
+
+            // Bookshelf click (記憶の目録機能への遷移)
+            bookshelf.addEventListener('click', () => {
+                // Asset: ズームイン/アウト音 (sfx_zoom_in_out.wav)
+                // 書斎から一覧へ（別ページ遷移）
+                navigateWithBlink('list.html');
+            });
+
+            // Window click (夢の氾濫ギミックの発動)
+            windowElement.addEventListener('click', () => {
+                playSound('sfx_glass_warp.wav'); // Asset: ガラスの歪む音
+                dreamFloodOverlay.classList.add('active');
+                // Auto-hide after 1 minute, or click outside to close
+                setTimeout(() => {
+                    if (dreamFloodOverlay.classList.contains('active')) {
+                        dreamFloodOverlay.classList.remove('active');
+                    }
+                }, 60000); // 1 minute
+            });
+            
+            // Click outside dream flood text to close
+            dreamFloodOverlay.addEventListener('click', (event) => {
+                if (event.target === dreamFloodOverlay) { // Only if clicking the overlay itself, not the text
+                    dreamFloodOverlay.classList.remove('active');
+                    playSound('sfx_ui_confirm.wav'); // Asset: 選択・決定音 (オーバーレイを閉じる確認音)
+                }
+            });
+
+            // Save Bookmark click (Save/Close create-edit modal - 定着の儀式)
+            const saveBookmark = document.getElementById('library-save-bookmark');
+            saveBookmark.addEventListener('click', () => {
+                console.log('[Save Bookmark] Save button clicked - initiating save ritual');
+
+                // 栞の発光演出（保存の儀式を視覚的に表現）
+                console.log('[Save Bookmark] Starting bookmark glow animation...');
+                saveBookmark.classList.add('glow');
+                playSound('sfx_ui_confirm.wav'); // Asset: 選択・決定音
+
+                // 発光アニメーション完了後にモーダルを閉じる
+                setTimeout(() => {
+                    console.log('[Save Bookmark] Glow animation complete, closing modal...');
+                    closeCreateEditModal();
+                    // playSound('sfx_scroll_roll_up.wav'); // Asset: 巻物の収束音 (closeCreateEditModal内で実行)
+
+                    // アニメーション終了後にglowクラスを削除
+                    setTimeout(() => {
+                        saveBookmark.classList.remove('glow');
+                    }, 600); // closeCreateEditModalの処理時間に合わせる
+                }, 300); // bookmark-glowアニメーションの時間
+            });
+
+            /* ============================================================
+             * 段階2：本の実体化アニメーション（将来実装：アセット到着時に有効化）
+             * ============================================================
+             *
+             * Assets Required:
+             * - img_book_closed_front.png (本：正面（閉）)
+             * - img_book_half_open.png (本：半分開きかけ)
+             *
+             * Animation Sequence (Timing: 栞の発光完了後 0.3s に開始):
+             * 1. 巻物の中間部分が高速で縮小（Height: 0）
+             *    - Sound: sfx_scroll_roll_up.wav（巻物の収束音）
+             *
+             * 2. 本のパラパラ漫画アニメーション（モーダル内中央）
+             *    - img_book_half_open.png を表示（0.1s〜0.2s）
+             *    - img_book_closed_front.png に切り替わる
+             *    - Sound: sfx_book_close.wav（重厚な閉本音）を同期
+             *
+             * 3. 本が飛び去る演出
+             *    - 本がモーダル背後の本棚へ縮小しながら飛んでいく
+             *    - モーダルが閉じる
+             *    - 書斎のぼかしが解除される
+             *
+             * 4. 本棚のテクスチャ更新
+             *    - 蔵書数に応じて段階（小/中/大）へ更新
+             *
+             * Note: テキスト内容は表示しない（本のビジュアルアニメーションのみ）
+             * Deferred: Assets未到着のため、段階1（発光演出）のみ実装
+             * Status: 詳細な仕様で実装準備完了、アセット到着時に実装可能
+             * ============================================================ */
+
+            // Mirror click (Logout - 目覚める儀式)
+            mirror.addEventListener('click', () => {
+                // Mirror effect (wave distortion)
+                console.log('Mirror clicked - initiating awakening effect');
+
+                // Logout sequence with awakening effect (3.4.1)
+                logoutWithAwakeningEffect();
+            });
+        });
+    </script>
+</body>
+</html>
