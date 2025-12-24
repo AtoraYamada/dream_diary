@@ -5,7 +5,7 @@ ruby '~> 3.3.0'
 # 基本
 gem 'rails', '~> 7.2.3'
 gem 'pg', '~> 1.5'
-gem 'puma', '~> 6.0'
+gem 'puma', '~> 7.1'
 
 # Asset管理
 gem 'sprockets-rails'
