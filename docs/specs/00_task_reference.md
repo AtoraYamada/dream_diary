@@ -102,7 +102,7 @@ docker compose config
 
 ---
 
-### タスク4: RSpec + RuboCop環境セットアップ (1.5-2時間)
+### タスク4: RSpec + RuboCop + Brakeman + CI設定環境セットアップ (1.5-2時間)
 
 **参照仕様書**:
 - `01_overview.md` § テスト環境構成
@@ -111,13 +111,12 @@ docker compose config
 
 **RSpec設定**:
 - `docker compose exec web rails generate rspec:install`
-- FactoryBot設定（`spec/support/factory_bot.rb`）
 - SimpleCov設定（`spec/spec_helper.rb`）
 - サンプルテスト実行確認
 
 **RuboCop設定**:
+- 'rubocop-rspec'導入
 - `.rubocop.yml` を作成（`01_overview.md` § RuboCop設定に従う）
-- TargetRubyVersion 3.2、LineLength 120、MethodLength 20 の設定
 - `docker compose exec web rubocop` で動作確認
 
 **Brakeman + CI設定**:
@@ -129,11 +128,12 @@ docker compose config
 - PR時に自動実行されることを確認
 
 **品質チェックワークフロー確立**:
-- Day 2 以降、各機能実装後に `docker compose exec web bash -c "rubocop && rspec"` を実行する習慣をつける
+- Day 2 以降、各機能実装後に `docker compose exec web bash -c "brakeman && rubocop && rspec"` を実行する習慣をつける
 
 **目標**:
 - テストカバレッジ 80%以上
 - RuboCop 違反 0件
+- Brakemanのセキュリティ警告がない
 
 ---
 
