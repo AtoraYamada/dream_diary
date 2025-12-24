@@ -1,8 +1,79 @@
-# Omakase Ruby styling for Rails
-inherit_gem: { rubocop-rails-omakase: rubocop.yml }
+plugins:
+  - rubocop-rails
+  - rubocop-rspec
 
-# Overwrite or add rules to create your own house style
-#
-# # Use `[a, [b, c]]` not `[ a, [ b, c ] ]`
-# Layout/SpaceInsideArrayLiteralBrackets:
-#   Enabled: false
+AllCops:
+  TargetRubyVersion: 3.3
+  NewCops: enable
+  Exclude:
+    - 'bin/**/*'
+    - 'db/schema.rb'
+    - 'db/migrate/**/*'
+    - 'node_modules/**/*'
+    - 'tmp/**/*'
+    - 'vendor/**/*'
+    - 'config/environments/**/*'
+    - 'config/initializers/**/*'
+
+# 日本語コメントを許可
+Style/AsciiComments:
+  Enabled: false
+
+# frozen_string_literal commentを必須としない
+Style/FrozenStringLiteralComment:
+  Enabled: false
+
+# メソッドの長さ制限を緩和
+Metrics/MethodLength:
+  Max: 20
+  Exclude:
+    - 'spec/**/*'
+
+# ブロックの長さ制限を緩和
+Metrics/BlockLength:
+  Exclude:
+    - 'spec/**/*'
+    - 'config/routes.rb'
+
+# クラスの長さ制限を緩和
+Metrics/ClassLength:
+  Max: 150
+
+# 行の長さ制限
+Layout/LineLength:
+  Max: 120
+  Exclude:
+    - 'spec/**/*'
+
+# ドキュメントコメントを必須としない
+Style/Documentation:
+  Enabled: false
+
+# 文字列リテラルのスタイル
+Style/StringLiterals:
+  EnforcedStyle: single_quotes
+
+# シンボル配列のスタイル
+Style/SymbolArray:
+  EnforcedStyle: brackets
+
+# 単語配列のスタイル
+Style/WordArray:
+  EnforcedStyle: brackets
+
+# RSpec関連のルールを実用的に緩和
+RSpec/MultipleExpectations:
+  Max: 10
+
+RSpec/ExampleLength:
+  Max: 20
+
+RSpec/ContextWording:
+  Enabled: false
+
+RSpec/NestedGroups:
+  Max: 5
+
+# テストでのバリデーションスキップを許可
+Rails/SkipsModelValidations:
+  Enabled: false
