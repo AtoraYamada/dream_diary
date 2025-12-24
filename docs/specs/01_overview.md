@@ -655,11 +655,114 @@ docker compose exec web rubocop app/models/dream.rb
 docker compose exec web bash -c "rubocop && rspec"
 ```
 
+### Brakeman設定（セキュリティスキャン）
+
+**Day 1 タスク4 で導入**:
+
+**Gemfile追加**:
+```ruby
+group :development do
+  gem 'brakeman', require: false
+end
+```
+
+**実行コマンド**:
+```bash
+# セキュリティスキャン実行
+docker compose exec web brakeman
+
+# ページャーなしで実行（CI用）
+docker compose exec web brakeman --no-pager
+```
+
+### CI設定（GitHub Actions）
+
+**Day 1 タスク4 で作成**: `.github/workflows/ci.yml`
+
+```yaml
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: dream_diary_user
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: dream_diary_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: .ruby-version
+          bundler-cache: true
+      - name: Setup Database
+        env:
+          POSTGRES_HOST: localhost
+          POSTGRES_USER: dream_diary_user
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: dream_diary_test
+          RAILS_ENV: test
+        run: |
+          bin/rails db:create
+          bin/rails db:migrate
+      - name: Run RSpec
+        env:
+          POSTGRES_HOST: localhost
+          POSTGRES_USER: dream_diary_user
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: dream_diary_test
+          RAILS_ENV: test
+        run: bundle exec rspec
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: .ruby-version
+          bundler-cache: true
+      - name: Run RuboCop
+        run: bundle exec rubocop
+
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: .ruby-version
+          bundler-cache: true
+      - name: Run Brakeman
+        run: bundle exec brakeman --no-pager
+```
+
 ### 品質チェック・ワークフロー（Day 2以降）
 
 ```bash
 # Rails実装後、毎回実行するコマンド
-docker compose exec web bash -c "rubocop && rspec"
+docker compose exec web bash -c "brakeman && rubocop && rspec"
 
 # 自動修正が必要な場合
 docker compose exec web rubocop --auto-correct-all

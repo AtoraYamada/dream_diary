@@ -76,6 +76,7 @@ SOLID原則、Rails Way、およびTDD（テスト駆動開発）に従い、保
 - **完了の定義**:
     - [ ] テストが通っている（カバレッジ80%以上を目標）
     - [ ] RuboCopのエラーがない
+    - [ ] Brakemanのセキュリティ警告がない
     - [ ] Railsアプリが正常に動作する
 
 # Commands
@@ -84,12 +85,14 @@ SOLID原則、Rails Way、およびTDD（テスト駆動開発）に従い、保
 ## Test & Lint
 - **RSpec (テスト)**: `docker compose exec web rspec`
 - **RuboCop (Lint)**: `docker compose exec web rubocop`
+- **Brakeman (セキュリティ)**: `docker compose exec web brakeman`
 
 ## Rails
 - **Server**:
   - `docker compose up`
   - `docker compose down`
 - **Console**: `docker compose exec web rails c`
+- **Bundle Install**: `docker compose exec web bundle install`
 - **DB Migrate**: `docker compose exec web rails db:migrate`
 - **Log**: `docker compose logs -f web`
 
