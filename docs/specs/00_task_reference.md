@@ -18,7 +18,6 @@
 
 **参照仕様書**:
 - `01_overview.md` § Docker環境構成
-- `01_overview.md` § 環境変数設定（.env.sample）
 
 **実装内容**:
 - `Dockerfile` 作成（Ruby 3.3 + Node.js + PostgreSQLクライアント）
@@ -43,28 +42,46 @@ docker compose config
 **実装内容**:
 1. **Railsプロジェクト生成**（Dockerコンテナ内で実行）:
    ```bash
-   docker compose run --rm web rails new . --database=postgresql --skip-test --skip-bundle --force
+   # 仮のGemfile作成
+   echo "source 'https://rubygems.org'" > Gemfile
+   echo "gem 'rails', '~> 7.2.3'" >> Gemfile
+
+   # bundle install（一時的）
+   docker compose run --rm web bundle install
+
+   # Railsプロジェクト生成
+   docker compose run --rm web bundle exec rails new . --database=postgresql --skip-test --skip-bundle --force
    ```
-2. **Gemfile編集**（devise, rspec-rails, factory_bot_rails, simplecov, kaminari, rack-cors, rubocop, rubocop-rails）
-3. **.envファイル作成**:
+2. **Gemfile編集**（devise, rspec-rails, factory_bot_rails, simplecov, kaminari, rack-cors, bootsnap, rubocop, rubocop-rails）
+3. **config/database.yml編集**（環境変数使用）:
+   - defaultセクションに`host`, `username`, `password`を環境変数から読み込む設定を追加
+   - 参照: `01_overview.md` § database.yml設定
+4. **.envファイル作成 + SECRET_KEY_BASE生成**:
    ```bash
    cp .env.sample .env
-   # .env を編集（パスワード等を設定）
+
+   # SECRET_KEY_BASE生成
+   docker compose exec web bundle exec rails secret
+   # 生成された値を.envのSECRET_KEY_BASEに設定
    ```
-4. **Docker起動 + gem install + DB作成**:
+5. **Docker再起動 + gem install + DB作成**:
    ```bash
+   docker compose down
    docker compose up -d
    docker compose exec web bundle install
    docker compose exec web rails db:create
+   docker compose exec web rails db:create RAILS_ENV=test
    ```
 
 **注意点**:
 - `--skip-test` で Minitest を除外（RSpecを使用）
 - `--skip-bundle` でホストでのbundle installをスキップ（Docker環境で実行）
-- `--force` で既存ファイル（README.md、.gitignore）を上書き（非対話的実行のため必須）
+- `--force` で既存ファイル（README.md、.gitignore、**Dockerfile**）を上書き（非対話的実行のため必須）→ **Dockerfileは元に戻す必要あり**
+- `bootsnap` を追加（起動時間短縮）
 - `rack-cors` は後で CORS 設定に使用
 - **`rubocop` と `rubocop-rails` を development グループに追加**（Day 1 Task 4 でセットアップ）
 - gem永続化により、Gemfile更新時は `docker compose exec web bundle install` のみで対応可能（再ビルド不要）
+- **database.ymlで環境変数を使用**するため、.envから`DATABASE_URL`は削除
 
 ---
 
