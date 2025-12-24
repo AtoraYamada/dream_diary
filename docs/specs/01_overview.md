@@ -527,29 +527,20 @@ emotion_color の値に応じて、対応する感情彩色の画像ファイル
 ### RSpec設定（spec/rails_helper.rb）
 
 ```ruby
-require 'simplecov'
-SimpleCov.start 'rails' do
-  add_filter '/spec/'
-  add_filter '/config/'
-  add_filter '/vendor/'
-
-  minimum_coverage 80
-end
-
 require 'spec_helper'
 ENV['RAILS_ENV'] ||= 'test'
 require_relative '../config/environment'
-abort("The Rails environment is running in production mode!") if Rails.env.production?
+raise StandardError, 'The Rails environment is running in production mode!' if Rails.env.production?
 require 'rspec/rails'
 
-begin
-  ActiveRecord::Migration.maintain_test_schema!
-rescue ActiveRecord::PendingMigrationError => e
-  abort e.to_s.strip
-end
+Rails.root.glob('spec/support/**/*.rb').sort_by(&:to_s).each { |f| require f }
+
+ActiveRecord::Migration.maintain_test_schema!
 
 RSpec.configure do |config|
-  config.fixture_path = "#{::Rails.root}/spec/fixtures"
+  config.fixture_paths = [
+    Rails.root.join('spec/fixtures')
+  ]
   config.use_transactional_fixtures = true
   config.infer_spec_type_from_file_location!
   config.filter_rails_from_backtrace!
@@ -562,15 +553,16 @@ RSpec.configure do |config|
 end
 ```
 
-### FactoryBot設定（spec/support/factory_bot.rb）
+### SimpleCov設定（spec/spec_helper.rb）
 
 ```ruby
-RSpec.configure do |config|
-  config.include FactoryBot::Syntax::Methods
+require 'simplecov'
+SimpleCov.start 'rails' do
+  add_filter '/spec/'
+  add_filter '/config/'
+  add_filter '/vendor/'
 
-  config.before(:suite) do
-    FactoryBot.find_definitions
-  end
+  minimum_coverage 80
 end
 ```
 
@@ -595,48 +587,85 @@ docker compose exec web rspec spec/models/dream_spec.rb:15
 **Day 1 タスク4 で作成**:
 
 ```yaml
+plugins:
+  - rubocop-rails
+  - rubocop-rspec
+
 AllCops:
   TargetRubyVersion: 3.3
   NewCops: enable
   Exclude:
-    - 'db/**/*'
-    - 'vendor/**/*'
-    - 'node_modules/**/*'
     - 'bin/**/*'
+    - 'db/schema.rb'
+    - 'db/migrate/**/*'
+    - 'node_modules/**/*'
+    - 'tmp/**/*'
+    - 'vendor/**/*'
+    - 'config/environments/**/*'
+    - 'config/initializers/**/*'
 
-Rails:
-  Enabled: true
+# 日本語コメントを許可
+Style/AsciiComments:
+  Enabled: false
 
-# メトリクス設定
-Metrics/LineLength:
-  Max: 120
+# frozen_string_literal commentを必須としない
+Style/FrozenStringLiteralComment:
+  Enabled: false
 
-Metrics/BlockLength:
-  Exclude:
-    - 'spec/**/*'
-    - 'config/**/*'
-
+# メソッドの長さ制限を緩和
 Metrics/MethodLength:
   Max: 20
   Exclude:
     - 'spec/**/*'
 
-# スタイル設定
-Style/FrozenStringLiteralComment:
+# ブロックの長さ制限を緩和
+Metrics/BlockLength:
+  Exclude:
+    - 'spec/**/*'
+    - 'config/routes.rb'
+
+# クラスの長さ制限を緩和
+Metrics/ClassLength:
+  Max: 150
+
+# 行の長さ制限
+Layout/LineLength:
+  Max: 120
+  Exclude:
+    - 'spec/**/*'
+
+# ドキュメントコメントを必須としない
+Style/Documentation:
   Enabled: false
 
+# 文字列リテラルのスタイル
 Style/StringLiterals:
-  EnforcedStyle: double_quotes
+  EnforcedStyle: single_quotes
 
+# シンボル配列のスタイル
 Style/SymbolArray:
   EnforcedStyle: brackets
 
-# Rails固有
-Rails/Output:
+# 単語配列のスタイル
+Style/WordArray:
+  EnforcedStyle: brackets
+
+# RSpec関連のルールを実用的に緩和
+RSpec/MultipleExpectations:
+  Max: 10
+
+RSpec/ExampleLength:
+  Max: 20
+
+RSpec/ContextWording:
   Enabled: false
 
-Rails/FilePath:
-  EnforcedStyle: arguments
+RSpec/NestedGroups:
+  Max: 5
+
+# テストでのバリデーションスキップを許可
+Rails/SkipsModelValidations:
+  Enabled: false
 ```
 
 ### RuboCop実行コマンド
