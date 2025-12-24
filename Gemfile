@@ -21,7 +21,7 @@ gem 'devise', '~> 4.9'
 gem 'kaminari', '~> 1.2'
 
 # CORS
-gem 'rack-cors', '~> 2.0'
+gem 'rack-cors', '~> 3.0'
 
 group :development, :test do
   gem 'rspec-rails', '~> 6.0'
