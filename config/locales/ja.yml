@@ -1,0 +1,87 @@
+ja:
+  activerecord:
+    models:
+      dream: "夢"
+      tag: "栞"
+      dream_tag: "綴じ込み"
+      user: "利用者"
+
+    attributes:
+      dream:
+        title: "夢の銘"
+        content: "夢の残滓"
+        emotion_color: "夢見る心の色相"
+        dreamed_at: "夢との邂逅の刻"
+        lucid_dream_flag: "覚醒の刻印"
+        user: "筆録者"
+      tag:
+        name: "栞の銘"
+        yomi: "栞の読み"
+        yomi_index: "栞の目録"
+        category: "栞の種別"
+        user: "筆録者"
+      dream_tag:
+        dream: "夢"
+        tag: "栞"
+        dream_id: "夢"
+        tag_id: "栞"
+      user:
+        email: "連絡の灯火"
+        username: "利用者名"
+        password: "記憶の鍵"
+        password_confirmation: "2本目の記憶の鍵"
+
+    errors:
+      models:
+        dream:
+          attributes:
+            title:
+              blank: "が記された形跡がありません"
+              too_long: "が長すぎます（最大15文字）"
+            content:
+              blank: "が記された形跡がありません"
+              too_long: "が大きすぎて本に収まりません（最大10,000文字）"
+            emotion_color:
+              blank: "が選ばれていません"
+              inclusion: "の作法が異なっているようです"
+            dreamed_at:
+              blank: "が記録されていません"
+            user:
+              blank: "が誰か不明です"
+        tag:
+          attributes:
+            name:
+              blank: "が記された形跡がありません"
+              taken: "は既に記されています"
+            yomi:
+              blank: "が記された形跡がありません"
+            yomi_index:
+              blank: "が不明です"
+              inclusion: "の作法が異なっているようです"
+            category:
+              blank: "が不明です"
+              inclusion: "の作法が異なっているようです"
+            user:
+              blank: "が誰か不明です"
+        dream_tag:
+          attributes:
+            dream:
+              blank: "が行方不明です"
+            tag:
+              blank: "が行方不明です"
+            dream_id:
+              taken: "には既にこの栞が綴じ込められています"
+        user:
+          attributes:
+            email:
+              blank: "が灯されておりません"
+              taken: "は別の場所で灯っているようです"
+              invalid: "に必要な「印」が刻まれていません"
+            username:
+              blank: "が記された形跡がありません"
+              taken: "は既に蔵書目録に刻まれています"
+            password:
+              blank: "を携えていないようです"
+              too_short: "の強度が足りません（最小6文字）"
+            password_confirmation:
+              confirmation: "と1本目の記憶の鍵が一致しません"
