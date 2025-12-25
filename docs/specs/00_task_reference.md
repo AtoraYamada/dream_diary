@@ -164,6 +164,7 @@ docker compose exec web rails g model DreamTag dream:references tag:references
 ### タスク2: モデル層TDD - Red Phase (1時間)
 
 **参照仕様書**:
+- `02_database.md` § User モデル（Devise）
 - `02_database.md` § Dream モデル
 - `02_database.md` § Tag モデル
 - `02_database.md` § DreamTag モデル（中間テーブル）
@@ -176,21 +177,25 @@ docker compose exec web rails g model DreamTag dream:references tag:references
   - アソシエーションspec
   - スコープspec
   - enumspec
+- カスタムエラーメッセージ config/locales/ja.yml で定義
 
 ---
 
 ### タスク3: モデル層TDD - Green Phase (1.5-2時間)
 
 **参照仕様書**:
+- `02_database.md` § User モデル（Devise）
 - `02_database.md` § Dream モデル
 - `02_database.md` § Tag モデル
 - `02_database.md` § DreamTag モデル（中間テーブル）
 
 **実装内容**:
+- テストが通過するようにモデルを実装
 - Dream モデル実装（enum, バリデーション, スコープ）
 - Tag モデル実装（enum, バリデーション, コールバック）
 - DreamTag モデル実装（バリデーション、中間テーブル設定）
-- アソシエーション実装（Dream/Tag/DreamTag の has_many :through で多対多関係）
+- User モデル（Devise）実装（バリデーション）
+- アソシエーション実装
 - テストがすべてパスすることを確認
 
 **完了後の自動処理**:
@@ -206,6 +211,11 @@ docker compose exec web rails g model DreamTag dream:references tag:references
 - `03_api.md` § ルーティング設定
 - `03_api.md` § Dreams API
 - `03_api.md` § Tags API
+- `03_api.md` § エラーレスポンス共通形式
+- `03_api.md` § エラーハンドリング実装ガイドライン
+- `03_api.md` § バックエンド（Rails）での対応
+- `03_api.md` § 実装時の注意点
+- `03_api.md` § エンドポイント別エラーレスポンス詳細
 
 **実装内容**:
 - Request specs作成（失敗するテストを先に書く）
@@ -222,6 +232,11 @@ docker compose exec web rails g model DreamTag dream:references tag:references
 - `03_api.md` § ルーティング設定
 - `03_api.md` § Dreams API
 - `03_api.md` § Tags API
+- `03_api.md` § エラーレスポンス共通形式
+- `03_api.md` § エラーハンドリング実装ガイドライン
+- `03_api.md` § バックエンド（Rails）での対応
+- `03_api.md` § 実装時の注意点
+- `03_api.md` § エンドポイント別エラーレスポンス詳細
 
 **実装内容**:
 - `config/routes.rb` 編集（namespace :api）
