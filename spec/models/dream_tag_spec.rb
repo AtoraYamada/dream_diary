@@ -32,8 +32,9 @@ RSpec.describe DreamTag, type: :model do
   # ========================================
   describe 'バリデーション' do
     # shoulda-matchers による基本テスト
-    it { is_expected.to validate_presence_of(:dream_id) }
-    it { is_expected.to validate_presence_of(:tag_id) }
+    # belongs_toが暗黙的にバリデーション（Rails 5+）するため、明示的なpresenceテストは不要
+    # it { is_expected.to validate_presence_of(:dream_id) }
+    # it { is_expected.to validate_presence_of(:tag_id) }
 
     # --- 正常系 ---
     describe '正常系' do

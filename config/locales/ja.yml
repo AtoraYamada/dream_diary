@@ -48,6 +48,7 @@ ja:
               blank: "が記録されていません"
             user:
               blank: "が誰か不明です"
+              required: "が誰か不明です"
         tag:
           attributes:
             name:
@@ -63,14 +64,20 @@ ja:
               inclusion: "の作法が異なっているようです"
             user:
               blank: "が誰か不明です"
+              required: "が誰か不明です"
         dream_tag:
           attributes:
             dream:
               blank: "が行方不明です"
+              required: "が行方不明です"
             tag:
               blank: "が行方不明です"
+              required: "が行方不明です"
             dream_id:
+              blank: "が行方不明です"
               taken: "には既にこの栞が綴じ込められています"
+            tag_id:
+              blank: "が行方不明です"
         user:
           attributes:
             email:
@@ -85,3 +92,7 @@ ja:
               too_short: "の強度が足りません（最小6文字）"
             password_confirmation:
               confirmation: "と1本目の記憶の鍵が一致しません"
+
+  errors:
+    messages:
+      record_invalid: "バリデーションに失敗しました: %{errors}"

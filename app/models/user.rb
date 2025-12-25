@@ -24,5 +24,10 @@ class User < ApplicationRecord
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :validatable
 
+  # アソシエーション
+  has_many :dreams, dependent: :destroy
+  has_many :tags, dependent: :destroy
+
+  # バリデーション
   validates :username, presence: true, uniqueness: true
 end

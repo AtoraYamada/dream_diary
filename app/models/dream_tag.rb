@@ -17,4 +17,8 @@
 class DreamTag < ApplicationRecord
   belongs_to :dream
   belongs_to :tag
+
+  # バリデーション
+  # belongs_toが暗黙的にdream/tagの存在をバリデーション（Rails 5+のデフォルト）
+  validates :dream_id, uniqueness: { scope: :tag_id }
 end
