@@ -273,7 +273,7 @@ end
 | `0` | peace | 安らぎ・平穏 |
 | `1` | chaos | 混沌 |
 | `2` | fear | 恐怖 |
-| `3` | exalt | 高揚 |
+| `3` | elation | 高揚 |
 
 フロントエンドは emotion_color の値に基づいて、対応する感情彩色の画像ファイルを動的に選択して表示します（詳細は `04_frontend.md` 参照）。
 
@@ -649,7 +649,6 @@ end
       "yomi": "たろう",
       "yomi_index": "た",
       "category": "person",
-      "dream_count": 5
     },
     {
       "id": 2,
@@ -657,7 +656,6 @@ end
       "yomi": "ふるびたようかん",
       "yomi_index": "ふ",
       "category": "place",
-      "dream_count": 3
     }
   ]
 }
@@ -689,7 +687,6 @@ class Api::V1::TagsController < ApplicationController
       yomi: tag.yomi,
       yomi_index: tag.yomi_index,
       category: tag.category,
-      dream_count: tag.dreams.count
     }
   end
 end
@@ -711,8 +708,8 @@ end
 ```json
 {
   "suggestions": [
-    { "id": 1, "name": "太郎", "category": "person" },
-    { "id": 5, "name": "太陽", "category": "place" }
+    { "id": 1, "name": "太郎", "yomi": "たろう", "category": "person" },
+    { "id": 5, "name": "太陽", "yomi": "たろう", "category": "place" }
   ]
 }
 ```
@@ -751,7 +748,7 @@ end
 
 ## エラーレスポンス共通形式
 
-**注記**: 以下のメッセージは `config/locales/ja.yml` で定義され、Rails i18n により日本語化されます。
+**注記**: 以下のメッセージは例です。実際は `config/locales/ja.yml` で定義され、Rails i18n により日本語化されます。
 
 ### 400 Bad Request
 ```json

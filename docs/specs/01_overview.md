@@ -268,7 +268,7 @@ Dream Diary では、**現実（トップページ）** と **夢の領域（扉
   --color-peace: #d4c5b9;   /* 0: 穏やか（ベージュ） */
   --color-chaos: #8b4c4c;   /* 1: 混沌（深紅） */
   --color-fear: #4a5568;    /* 2: 恐怖（紺） */
-  --color-exalt: #c9a854;   /* 3: 歓喜（金） */
+  --color-elation: #c9a854;   /* 3: 歓喜（金） */
 }
 
 /* トップページ専用 */
@@ -507,17 +507,17 @@ Rails.application.config.assets.paths << Rails.root.join('app', 'assets', 'image
 - `0`: peace（安らぎ・平穏）
 - `1`: chaos（混沌）
 - `2`: fear（恐怖）
-- `3`: exalt（高揚）
+- `3`: elation（高揚）
 
 ### 対応アセット（各4色版で用意）
 
 | アセット | ファイル名パターン |
 |---------|-----------------|
-| 本棚表示用の背表紙 | `img_book_spine_{peace\|chaos\|fear\|exalt}.png` |
-| 本：正面（閉） | `img_book_closed_{peace\|chaos\|fear\|exalt}.png` |
-| 本：半分開きかけ | `img_book_half_open_{peace\|chaos\|fear\|exalt}.png` |
-| 本：見開きフレーム | `img_book_open_frame_{peace\|chaos\|fear\|exalt}.png` |
-| インク瓶（作成UI用） | `img_ink_bottle_{peace\|chaos\|fear\|exalt}.png` |
+| 本棚表示用の背表紙 | `img_book_spine_{peace\|chaos\|fear\|elation}.png` |
+| 本：正面（閉） | `img_book_closed_{peace\|chaos\|fear\|elation}.png` |
+| 本：半分開きかけ | `img_book_half_open_{peace\|chaos\|fear\|elation}.png` |
+| 本：見開きフレーム | `img_book_open_frame_{peace\|chaos\|fear\|elation}.png` |
+| インク瓶（作成UI用） | `img_ink_bottle_{peace\|chaos\|fear\|elation}.png` |
 
 ### フロントエンド実装
 

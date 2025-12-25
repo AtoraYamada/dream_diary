@@ -414,7 +414,7 @@ prototype/assets/*.{wav,mp3} → app/assets/sounds/*
   - 本文入力（テキストエリア、10,000文字制限）
   - 感情彩色選択（4色インク瓶）
     - **アセット選択**: `getEmotionImagePath('img_ink_bottle', emotion_color)` で色別画像を動的に選択
-    - emotion_color: 0=peace, 1=chaos, 2=fear, 3=exalt
+    - emotion_color: 0=peace, 1=chaos, 2=fear, 3=elation
   - タグ入力（登場人物/場所）
     - タグ名（`name`）のみ入力欄表示
     - 読み仮名（yomi）自動生成（kuromoji.js、hidden input に保持）

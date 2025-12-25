@@ -249,7 +249,7 @@ document.documentElement.classList.add('after-door');
   --color-peace: #d4c5b9;
   --color-chaos: #8b4c4c;
   --color-fear: #4a5568;
-  --color-exalt: #c9a854;
+  --color-elation: #c9a854;
 }
 ```
 
@@ -296,7 +296,7 @@ function getEmotionImagePath(baseName, emotionColor) {
     0: 'peace',
     1: 'chaos',
     2: 'fear',
-    3: 'exalt'
+    3: 'elation'
   };
 
   const emotionKey = emotionMap[emotionColor];
