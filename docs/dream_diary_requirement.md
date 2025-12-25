@@ -462,7 +462,7 @@ Mystのような没入感のある世界観と、PS1時代のレトロな質感�
 | | **修正用ツール（羽ペンとナイフ）** | 詳細画面用の編集トリガー。「修正用の羽ペン」と「ペーパーナイフ」が一体となったデザイン。 | |
 
 ##### 4.3.2.2. 感情彩色対応アセット（4色版）
-感情彩色（peace/chaos/fear/exalt）に対応した画像群です。
+感情彩色（peace/chaos/fear/elation）に対応した画像群です。
 JavaScriptで色別の画像ファイルを動的に選択して表示します（`getEmotionImagePath()` 関数参照）。
 
 **巻物（作成UI）**
@@ -473,7 +473,7 @@ JavaScriptで色別の画像ファイルを動的に選択して表示します�
 | 安らぎ（平穏） | img_ink_bottle_peace.png |
 | 混沌 | img_ink_bottle_chaos.png |
 | 恐怖 | img_ink_bottle_fear.png |
-| 高揚 | img_ink_bottle_exalt.png |
+| 高揚 | img_ink_bottle_elation.png |
 
 **説明**:
 - 瓶のガラス部分にはインクの色が満たされた状態で表現
@@ -489,7 +489,7 @@ JavaScriptで色別の画像ファイルを動的に選択して表示します�
 | 安らぎ（平穏） | img_book_spine_peace.png |
 | 混沌 | img_book_spine_chaos.png |
 | 恐怖 | img_book_spine_fear.png |
-| 高揚 | img_book_spine_exalt.png |
+| 高揚 | img_book_spine_elation.png |
 
 - **本：正面（閉）**:
 
@@ -498,7 +498,7 @@ JavaScriptで色別の画像ファイルを動的に選択して表示します�
 | 安らぎ（平穏） | img_book_closed_peace.png |
 | 混沌 | img_book_closed_chaos.png |
 | 恐怖 | img_book_closed_fear.png |
-| 高揚 | img_book_closed_exalt.png |
+| 高揚 | img_book_closed_elation.png |
 
 - **本：半分開きかけ**:
 
@@ -507,7 +507,7 @@ JavaScriptで色別の画像ファイルを動的に選択して表示します�
 | 安らぎ（平穏） | img_book_half_open_peace.png |
 | 混沌 | img_book_half_open_chaos.png |
 | 恐怖 | img_book_half_open_fear.png |
-| 高揚 | img_book_half_open_exalt.png |
+| 高揚 | img_book_half_open_elation.png |
 
 - **本：見開きフレーム**:
 
@@ -516,7 +516,7 @@ JavaScriptで色別の画像ファイルを動的に選択して表示します�
 | 安らぎ（平穏） | img_book_open_frame_peace.png |
 | 混沌 | img_book_open_frame_chaos.png |
 | 恐怖 | img_book_open_frame_fear.png |
-| 高揚 | img_book_open_frame_exalt.png |
+| 高揚 | img_book_open_frame_elation.png |
 
 ### 4.3.3. テクスチャの共通化と構造的差異
 世界観の統一と開発効率のため、紙の質感は以下のルールで管理する。
@@ -664,7 +664,7 @@ JavaScriptで色別の画像ファイルを動的に選択して表示します�
     --color-peace: #d4c5b9;   /* 0: 安らぎ・平穏（ベージュ） */
     --color-chaos: #8b4c4c;   /* 1: 混沌（深紅） */
     --color-fear: #4a5568;    /* 2: 恐怖（紺） */
-    --color-exalt: #c9a854;   /* 3: 高揚（金） */
+    --color-elation: #c9a854;   /* 3: 高揚（金） */
 }
 ```
 - **適用範囲:** 作成（編集）中の巻物の背景色、夢の氾濫の文字色に適用。

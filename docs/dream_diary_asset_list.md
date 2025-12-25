@@ -114,7 +114,7 @@
 
 ### 1.3. 感情彩色対応アセット（4色版）
 
-感情彩色（peace/chaos/fear/exalt）に対応した画像群です。
+感情彩色（peace/chaos/fear/elation）に対応した画像群です。
 JavaScriptで色別の画像ファイルを動的に選択して表示します（`getEmotionImagePath()` 関数参照）。
 
 #### 1.3.1 巻物（作成UI）
@@ -125,7 +125,7 @@ JavaScriptで色別の画像ファイルを動的に選択して表示します�
 | 安らぎ（平穏） | img_ink_bottle_peace.png |
 | 混沌 | img_ink_bottle_chaos.png |
 | 恐怖 | img_ink_bottle_fear.png |
-| 高揚 | img_ink_bottle_exalt.png |
+| 高揚 | img_ink_bottle_elation.png |
 
 **説明**:
 - 瓶のガラス部分にはインクの色が満たされた状態で表現
@@ -140,7 +140,7 @@ JavaScriptで色別の画像ファイルを動的に選択して表示します�
 | 安らぎ（平穏） | img_book_spine_peace.png |
 | 混沌 | img_book_spine_chaos.png |
 | 恐怖 | img_book_spine_fear.png |
-| 高揚 | img_book_spine_exalt.png |
+| 高揚 | img_book_spine_elation.png |
 
 **本：正面（閉）**:
 | 感情彩色 | ファイル名 |
@@ -148,7 +148,7 @@ JavaScriptで色別の画像ファイルを動的に選択して表示します�
 | 安らぎ（平穏） | img_book_closed_peace.png |
 | 混沌 | img_book_closed_chaos.png |
 | 恐怖 | img_book_closed_fear.png |
-| 高揚 | img_book_closed_exalt.png |
+| 高揚 | img_book_closed_elation.png |
 
 **本：半分開きかけ**:
 | 感情彩色 | ファイル名 |
@@ -156,7 +156,7 @@ JavaScriptで色別の画像ファイルを動的に選択して表示します�
 | 安らぎ（平穏） | img_book_half_open_peace.png |
 | 混沌 | img_book_half_open_chaos.png |
 | 恐怖 | img_book_half_open_fear.png |
-| 高揚 | img_book_half_open_exalt.png |
+| 高揚 | img_book_half_open_elation.png |
 
 **本：見開きフレーム**:
 | 感情彩色 | ファイル名 |
@@ -164,7 +164,7 @@ JavaScriptで色別の画像ファイルを動的に選択して表示します�
 | 安らぎ（平穏） | img_book_open_frame_peace.png |
 | 混沌 | img_book_open_frame_chaos.png |
 | 恐怖 | img_book_open_frame_fear.png |
-| 高揚 | img_book_open_frame_exalt.png |
+| 高揚 | img_book_open_frame_elation.png |
 
 **実装方法**:
 JavaScriptで emotion_color に応じて画像ファイルを動的に切り替えます（CSSでの色後付けは不要）。
