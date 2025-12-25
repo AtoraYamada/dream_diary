@@ -21,11 +21,33 @@
 #
 FactoryBot.define do
   factory :dream do
-    user { nil }
-    title { 'MyString' }
-    content { 'MyText' }
-    emotion_color { 1 }
-    lucid_dream_flag { false }
-    dreamed_at { '2025-12-24 13:18:17' }
+    association :user
+    title { '夢のタイトル' }
+    content { '夢の内容が記述されます。' }
+    emotion_color { :peace }
+    dreamed_at { Time.current }
+    # lucid_dream_flag はデフォルト値（false）をテストするため指定しない
+
+    trait :lucid do
+      lucid_dream_flag { true }
+    end
+
+    trait :chaos do
+      emotion_color { :chaos }
+    end
+
+    trait :fear do
+      emotion_color { :fear }
+    end
+
+    trait :elation do
+      emotion_color { :elation }
+    end
+
+    trait :with_tags do
+      after(:create) do |dream|
+        create_list(:tag, 2, user: dream.user, dreams: [dream])
+      end
+    end
   end
 end

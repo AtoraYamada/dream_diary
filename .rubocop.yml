@@ -74,6 +74,22 @@ RSpec/ContextWording:
 RSpec/NestedGroups:
   Max: 5
 
+# let! を setup データとして使用することを許可
+RSpec/LetSetup:
+  Enabled: false
+
+# memoized helpers の上限を引き上げ
+RSpec/MultipleMemoizedHelpers:
+  Max: 10
+
+# インデックス付きlet変数名を許可
+RSpec/IndexedLet:
+  Enabled: false
+
+# subject に名前を付けなくても OK
+RSpec/NamedSubject:
+  Enabled: false
+
 # テストでのバリデーションスキップを許可
 Rails/SkipsModelValidations:
   Enabled: false

@@ -20,6 +20,9 @@
 #
 FactoryBot.define do
   factory :user do
-    # TODO: implement later Day2 タスク4
+    sequence(:email) { |n| "user#{n}@example.com" }
+    sequence(:username) { |n| "user#{n}" }
+    password { 'password123' }
+    password_confirmation { 'password123' }
   end
 end

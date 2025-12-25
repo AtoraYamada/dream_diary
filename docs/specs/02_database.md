@@ -205,7 +205,7 @@ class User < ApplicationRecord
   has_many :tags, dependent: :destroy
 
   # バリデーション
-  validates :username, presence: true, uniqueness: true, length: { minimum: 3, maximum: 20 }
+  validates :username, presence: true, uniqueness: true
   validates :email, presence: true, uniqueness: true
 end
 ```
@@ -227,8 +227,10 @@ class Dream < ApplicationRecord
   # バリデーション
   validates :title, presence: true, length: { maximum: 15 }
   validates :content, presence: true, length: { maximum: 10000 }
-  validates :emotion_color, presence: true
+  validates :emotion_color, presence: true, inclusion: { in: emotion_colors.keys }
   validates :dreamed_at, presence: true
+
+  # ※ カスタムエラーメッセージは config/locales/ja.yml で定義
 
   # スコープ
   scope :recent, -> { order(dreamed_at: :desc) }
@@ -294,8 +296,10 @@ class Tag < ApplicationRecord
   # バリデーション
   validates :name, presence: true, uniqueness: { scope: :user_id }
   validates :yomi, presence: true
-  validates :yomi_index, presence: true
-  validates :category, presence: true
+  validates :yomi_index, presence: true, inclusion: { in: yomi_indexes.keys }
+  validates :category, presence: true, inclusion: { in: categories.keys }
+
+  # ※ カスタムエラーメッセージは config/locales/ja.yml で定義
 
   # before_validation: yomi_index 自動生成
   before_validation :set_yomi_index
@@ -354,12 +358,16 @@ class DreamTag < ApplicationRecord
   validates :dream_id, presence: true
   validates :tag_id, presence: true
   validates :dream_id, uniqueness: { scope: :tag_id }
+
+  # ※ カスタムエラーメッセージは config/locales/ja.yml で定義
 end
 ```
 
 ---
 
 ## テスト仕様
+
+**テスト構成**: 正常系/異常系/境界系で分類し、`full_messages_for` を使用して完全なエラーメッセージをテスト
 
 ### Model Spec（例：Dream）
 
@@ -368,6 +376,8 @@ end
 require 'rails_helper'
 
 RSpec.describe Dream, type: :model do
+  subject { build(:dream) }
+
   # アソシエーション
   it { should belong_to(:user) }
   it { should have_many(:dream_tags).dependent(:destroy) }
@@ -384,32 +394,57 @@ RSpec.describe Dream, type: :model do
   # enum
   it { should define_enum_for(:emotion_color).with_values(peace: 0, chaos: 1, fear: 2, elation: 3) }
 
+  # 異常系: enumに含まれない値
+  context 'emotion_colorが不正な値の場合' do
+    before do
+      subject.save(validate: false)
+      subject.update_column(:emotion_color, 999)
+    end
+
+    it 'バリデーションエラーが発生する' do
+      expect(subject).to be_invalid
+    end
+
+    it 'カスタムエラーメッセージが表示される' do
+      subject.valid?
+      expect(subject.errors.full_messages_for(:emotion_color)).to eq(['夢見る心の色相 の作法が異なっているようです'])
+    end
+  end
+
   # スコープ
   describe '.search_by_keyword' do
-    let!(:dream1) { create(:dream, title: '古びた洋館', content: '地下室の奥で') }
-    let!(:dream2) { create(:dream, title: '森の記憶', content: '木陰で休む') }
+    let!(:mansion_dream) { create(:dream, title: '古びた洋館', content: '地下室の奥で') }
+    let!(:forest_dream) { create(:dream, title: '森の記憶', content: '木陰で休む') }
+    let!(:library_dream) { create(:dream, title: '静かな図書館', content: '古びた本を探す') }
 
     it 'タイトルで検索できる' do
-      expect(Dream.search_by_keyword('洋館')).to include(dream1)
-      expect(Dream.search_by_keyword('洋館')).not_to include(dream2)
+      expect(Dream.search_by_keyword('洋館')).to include(mansion_dream)
+      expect(Dream.search_by_keyword('洋館')).not_to include(forest_dream, library_dream)
     end
 
     it '本文で検索できる' do
-      expect(Dream.search_by_keyword('地下室')).to include(dream1)
+      expect(Dream.search_by_keyword('地下室')).to include(mansion_dream)
+      expect(Dream.search_by_keyword('地下室')).not_to include(forest_dream, library_dream)
+    end
+
+    it 'title と content 両方でキーワード検索できる（OR条件）' do
+      result = Dream.search_by_keyword('古びた')
+      expect(result).to include(mansion_dream, library_dream) # mansion_dreamはtitle、library_dreamはcontentでヒット
+      expect(result).not_to include(forest_dream)
     end
   end
 
   describe '.tagged_with' do
     let(:user) { create(:user) }
-    let(:tag1) { create(:tag, name: '太郎', user: user) }
-    let(:tag2) { create(:tag, name: '洋館', user: user) }
-    let!(:dream1) { create(:dream, user: user, tags: [tag1, tag2]) }
-    let!(:dream2) { create(:dream, user: user, tags: [tag1]) }
+    let(:person_tag) { create(:tag, name: '太郎', user: user) }
+    let(:place_tag) { create(:tag, name: '洋館', user: user) }
+    let!(:tagged_dream_with_both) { create(:dream, user: user, tags: [person_tag, place_tag]) }
+    let!(:tagged_dream_with_person) { create(:dream, user: user, tags: [person_tag]) }
 
-    it '指定したタグを全て持つ夢のみ抽出される' do
-      result = Dream.tagged_with([tag1.id, tag2.id])
-      expect(result).to include(dream1)
-      expect(result).not_to include(dream2)
+    it '指定したタグを全て持つ夢のみ抽出される（AND条件）' do
+      result = Dream.tagged_with([person_tag.id, place_tag.id])
+      expect(result).to include(tagged_dream_with_both)
+      expect(result).not_to include(tagged_dream_with_person)
     end
   end
 end
@@ -434,9 +469,31 @@ FactoryBot.define do
     association :user
     title { '夢のタイトル' }
     content { '夢の内容が記述されます。' }
-    emotion_color { :peace }
+    emotion_color { :peace } # Factory default (model defaultではない)
     dreamed_at { Time.current }
-    lucid_dream_flag { false }
+    # lucid_dream_flag omitted - model default (false) をテストするため
+
+    trait :lucid do
+      lucid_dream_flag { true }
+    end
+
+    trait :chaos do
+      emotion_color { :chaos }
+    end
+
+    trait :fear do
+      emotion_color { :fear }
+    end
+
+    trait :elation do
+      emotion_color { :elation }
+    end
+
+    trait :with_tags do
+      after(:create) do |dream|
+        create_list(:tag, 2, user: dream.user, dreams: [dream])
+      end
+    end
   end
 end
 
@@ -446,8 +503,17 @@ FactoryBot.define do
     association :user
     sequence(:name) { |n| "タグ#{n}" }
     yomi { 'たぐ' }
-    yomi_index { 'た' }
     category { :person }
+    # yomi_index omitted - before_validation callback で自動設定されるため
+
+    trait :place do
+      category { :place }
+    end
+
+    trait :with_custom_yomi do
+      yomi { 'かすたむ' }
+      # yomi_index は callback で 'か' に自動設定される
+    end
   end
 end
 
@@ -458,6 +524,148 @@ FactoryBot.define do
     association :tag
   end
 end
+```
+
+---
+
+## テスト環境設定
+
+### shoulda-matchers設定（spec/rails_helper.rb）
+
+```ruby
+require 'shoulda-matchers'
+
+Shoulda::Matchers.configure do |config|
+  config.integrate do |with|
+    with.test_framework :rspec
+    with.library :rails
+  end
+end
+```
+
+### カスタムエラーメッセージ（config/locales/ja.yml）
+
+```yaml
+ja:
+  activerecord:
+    models:
+      dream: "夢"
+      tag: "栞"
+      dream_tag: "綴じ込み"
+      user: "利用者"
+
+    attributes:
+      dream:
+        title: "夢の銘"
+        content: "夢の残滓"
+        emotion_color: "夢見る心の色相"
+        dreamed_at: "夢との邂逅の刻"
+        user: "筆録者"
+
+      tag:
+        name: "栞の銘"
+        yomi: "栞の読み"
+        yomi_index: "栞の目録"
+        category: "栞の種別"
+        user: "筆録者"
+
+      dream_tag:
+        dream: "夢"
+        tag: "栞"
+
+      user:
+        username: "利用者名"
+        email: "連絡の灯火"
+        password: "記憶の鍵"
+        password_confirmation: "2本目の記憶の鍵"
+
+    errors:
+      models:
+        dream:
+          attributes:
+            title:
+              blank: "が記された形跡がありません"
+              too_long: "が長すぎます（最大15文字）"
+            content:
+              blank: "が記された形跡がありません"
+              too_long: "が大きすぎて本に収まりません（最大10,000文字）"
+            emotion_color:
+              blank: "が選ばれていません"
+              inclusion: "の作法が異なっているようです"
+            dreamed_at:
+              blank: "が記録されていません"
+            user:
+              blank: "が誰か不明です"
+
+        tag:
+          attributes:
+            name:
+              blank: "が記された形跡がありません"
+              taken: "は既に記されています"
+            yomi:
+              blank: "が記された形跡がありません"
+            yomi_index:
+              blank: "が不明です"
+              inclusion: "の作法が異なっているようです"
+            category:
+              blank: "が不明です"
+              inclusion: "の作法が異なっているようです"
+            user:
+              blank: "が誰か不明です"
+
+        dream_tag:
+          attributes:
+            dream:
+              blank: "が行方不明です"
+            dream_id:
+              taken: "には既にこの栞が綴じ込められています"
+            tag:
+              blank: "が行方不明です"
+
+        user:
+          attributes:
+            username:
+              blank: "が記された形跡がありません"
+              taken: "は既に蔵書目録に刻まれています"
+            email:
+              blank: "が灯されておりません"
+              taken: "は別の場所で灯っているようです"
+              invalid: "に必要な「印」が刻まれていません"
+            password:
+              blank: "を携えていないようです"
+              too_short: "の強度が足りません（最小6文字）"
+            password_confirmation:
+              confirmation: "と1本目の記憶の鍵が一致しません"
+```
+
+### RuboCop設定（.rubocop.yml）
+
+RSpec関連のルールを実用的に緩和します：
+
+```yaml
+# let! を setup データとして使用することを許可
+RSpec/LetSetup:
+  Enabled: false
+
+# インデックス付きlet変数名を許可
+RSpec/IndexedLet:
+  Enabled: false
+
+# memoized helpers の上限を引き上げ
+RSpec/MultipleMemoizedHelpers:
+  Max: 10
+
+# subject に名前を付けなくても OK
+RSpec/NamedSubject:
+  Enabled: false
+
+# 複数の expect を許可
+RSpec/MultipleExpectations:
+  Max: 10
+
+# テスト例の長さを緩和
+RSpec/ExampleLength:
+  Max: 20
 ```
 
 ---

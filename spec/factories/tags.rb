@@ -21,10 +21,19 @@
 #
 FactoryBot.define do
   factory :tag do
-    user { nil }
-    name { 'MyString' }
-    yomi { 'MyString' }
-    yomi_index { 'MyString' }
-    category { 1 }
+    association :user
+    sequence(:name) { |n| "タグ#{n}" }
+    yomi { 'たぐ' }
+    category { :person }
+    # yomi_index は before_validation で自動生成されるため指定しない
+
+    trait :place do
+      category { :place }
+    end
+
+    trait :with_custom_yomi do
+      yomi { 'かすたむ' }
+      # yomi_index は 'か' に自動設定される
+    end
   end
 end
