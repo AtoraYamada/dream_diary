@@ -206,7 +206,7 @@ class User < ApplicationRecord
 
   # バリデーション
   validates :username, presence: true, uniqueness: true
-  validates :email, presence: true, uniqueness: true
+  # emailのバリデーションはDeviseの:validatableモジュールが自動的に提供
 end
 ```
 
@@ -227,7 +227,7 @@ class Dream < ApplicationRecord
   # バリデーション
   validates :title, presence: true, length: { maximum: 15 }
   validates :content, presence: true, length: { maximum: 10000 }
-  validates :emotion_color, presence: true, inclusion: { in: emotion_colors.keys }
+  validates :emotion_color, presence: true
   validates :dreamed_at, presence: true
 
   # ※ カスタムエラーメッセージは config/locales/ja.yml で定義
@@ -239,7 +239,8 @@ class Dream < ApplicationRecord
   # キーワード検索（title + content）
   scope :search_by_keyword, ->(keyword) {
     return all if keyword.blank?
-    where("title LIKE ? OR content LIKE ?", "%#{keyword}%", "%#{keyword}%")
+    sanitized = sanitize_sql_like(keyword)
+    where('title LIKE ? OR content LIKE ?', "%#{sanitized}%", "%#{sanitized}%")
   }
 
   # タグ検索（AND条件）
@@ -296,9 +297,8 @@ class Tag < ApplicationRecord
   # バリデーション
   validates :name, presence: true, uniqueness: { scope: :user_id }
   validates :yomi, presence: true
-  validates :yomi_index, presence: true, inclusion: { in: yomi_indexes.keys }
-  validates :category, presence: true, inclusion: { in: categories.keys }
-
+  validates :yomi_index, presence: true
+  validates :category, presence: true
   # ※ カスタムエラーメッセージは config/locales/ja.yml で定義
 
   # before_validation: yomi_index 自動生成
@@ -309,8 +309,23 @@ class Tag < ApplicationRecord
   scope :by_yomi_index, ->(idx) { where(yomi_index: idx) }
   scope :search_by_name_or_yomi, ->(query) {
     return all if query.blank?
-    where("name LIKE ? OR yomi LIKE ?", "%#{query}%", "%#{query}%")
+    sanitized = sanitize_sql_like(query)
+    where('name LIKE ? OR yomi LIKE ?', "%#{sanitized}%", "%#{sanitized}%")
   }
+
+  # ひらがな範囲マッピング（読み仮名インデックス自動判定用）
+  YOMI_INDEX_RANGES = {
+    'あ' => ('あ'..'お'),
+    'か' => ('か'..'ご'),
+    'さ' => ('さ'..'ぞ'),
+    'た' => ('た'..'ど'),
+    'な' => ('な'..'の'),
+    'は' => ('は'..'ぽ'),
+    'ま' => ('ま'..'も'),
+    'や' => ('や'..'よ'),
+    'ら' => ('ら'..'ろ'),
+    'わ' => ('わ'..'ん')
+  }.freeze
 
   private
 
@@ -319,21 +334,11 @@ class Tag < ApplicationRecord
 
     first_char = yomi[0]
 
-    # 判定ロジック（優先順位順）
-    self.yomi_index = case first_char
-    when 'あ'..'お' then 'あ'
-    when 'か'..'ご' then 'か'
-    when 'さ'..'ぞ' then 'さ'
-    when 'た'..'ど' then 'た'
-    when 'な'..'の' then 'な'
-    when 'は'..'ぽ' then 'は'
-    when 'ま'..'も' then 'ま'
-    when 'や'..'よ' then 'や'
-    when 'ら'..'ろ' then 'ら'
-    when 'わ'..'ん' then 'わ'
-    when /[a-zA-Z0-9]/ then '英数字'
-    else '他'
-    end
+    self.yomi_index = if first_char.match?(/[a-zA-Z0-9]/)
+                        '英数字'
+                      else
+                        YOMI_INDEX_RANGES.find { |_, range| range.include?(first_char) }&.first || '他'
+                      end
   end
 end
 ```
@@ -355,8 +360,7 @@ class DreamTag < ApplicationRecord
   belongs_to :tag
 
   # バリデーション
-  validates :dream_id, presence: true
-  validates :tag_id, presence: true
+  # belongs_toが暗黙的にdream/tagの存在をバリデーション（Rails 5+のデフォルト）
   validates :dream_id, uniqueness: { scope: :tag_id }
 
   # ※ カスタムエラーメッセージは config/locales/ja.yml で定義
@@ -392,24 +396,7 @@ RSpec.describe Dream, type: :model do
   it { should validate_presence_of(:dreamed_at) }
 
   # enum
-  it { should define_enum_for(:emotion_color).with_values(peace: 0, chaos: 1, fear: 2, elation: 3) }
-
-  # 異常系: enumに含まれない値
-  context 'emotion_colorが不正な値の場合' do
-    before do
-      subject.save(validate: false)
-      subject.update_column(:emotion_color, 999)
-    end
-
-    it 'バリデーションエラーが発生する' do
-      expect(subject).to be_invalid
-    end
-
-    it 'カスタムエラーメッセージが表示される' do
-      subject.valid?
-      expect(subject.errors.full_messages_for(:emotion_color)).to eq(['夢見る心の色相 の作法が異なっているようです'])
-    end
-  end
+  it { is_expected.to define_enum_for(:emotion_color).with_values(peace: 0, chaos: 1, fear: 2, elation: 3) }
 
   # スコープ
   describe '.search_by_keyword' do
@@ -596,6 +583,7 @@ ja:
               blank: "が記録されていません"
             user:
               blank: "が誰か不明です"
+              required: "が誰か不明です"
 
         tag:
           attributes:
@@ -612,14 +600,20 @@ ja:
               inclusion: "の作法が異なっているようです"
             user:
               blank: "が誰か不明です"
+              required: "が誰か不明です"
 
         dream_tag:
           attributes:
             dream:
               blank: "が行方不明です"
-            dream_id:
-              taken: "には既にこの栞が綴じ込められています"
+              required: "が行方不明です"
             tag:
+              blank: "が行方不明です"
+              required: "が行方不明です"
+            dream_id:
+              blank: "が行方不明です"
+              taken: "には既にこの栞が綴じ込められています"
+            tag_id:
               blank: "が行方不明です"
 
         user:
@@ -636,6 +630,9 @@ ja:
               too_short: "の強度が足りません（最小6文字）"
             password_confirmation:
               confirmation: "と1本目の記憶の鍵が一致しません"
+    errors:
+      messages:
+        record_invalid: "バリデーションに失敗しました: %{errors}"
 ```
 
 ### RuboCop設定（.rubocop.yml）

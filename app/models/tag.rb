@@ -23,4 +23,59 @@ class Tag < ApplicationRecord
   belongs_to :user
   has_many :dream_tags, dependent: :destroy
   has_many :dreams, through: :dream_tags
+
+  # enum定義
+  enum :category, { person: 0, place: 1 }
+  enum :yomi_index, {
+    'あ' => 0, 'か' => 1, 'さ' => 2, 'た' => 3, 'な' => 4,
+    'は' => 5, 'ま' => 6, 'や' => 7, 'ら' => 8, 'わ' => 9,
+    '英数字' => 10, '他' => 11
+  }
+
+  # バリデーション
+  validates :name, presence: true, uniqueness: { scope: :user_id }
+  validates :yomi, presence: true
+  validates :category, presence: true
+  validates :yomi_index, presence: true
+
+  # before_validation: yomi_index 自動生成
+  before_validation :set_yomi_index
+
+  # スコープ
+  scope :by_category, ->(cat) { where(category: cat) }
+  scope :by_yomi_index, ->(idx) { where(yomi_index: idx) }
+  scope :search_by_name_or_yomi, lambda { |query|
+    return all if query.blank?
+
+    sanitized = sanitize_sql_like(query)
+    where('name LIKE ? OR yomi LIKE ?', "%#{sanitized}%", "%#{sanitized}%")
+  }
+
+  # ひらがな範囲マッピング（読み仮名インデックス自動判定用）
+  YOMI_INDEX_RANGES = {
+    'あ' => ('あ'..'お'),
+    'か' => ('か'..'ご'),
+    'さ' => ('さ'..'ぞ'),
+    'た' => ('た'..'ど'),
+    'な' => ('な'..'の'),
+    'は' => ('は'..'ぽ'),
+    'ま' => ('ま'..'も'),
+    'や' => ('や'..'よ'),
+    'ら' => ('ら'..'ろ'),
+    'わ' => ('わ'..'ん')
+  }.freeze
+
+  private
+
+  def set_yomi_index
+    return if yomi.blank?
+
+    first_char = yomi[0]
+
+    self.yomi_index = if first_char.match?(/[a-zA-Z0-9]/)
+                        '英数字'
+                      else
+                        YOMI_INDEX_RANGES.find { |_, range| range.include?(first_char) }&.first || '他'
+                      end
+  end
 end

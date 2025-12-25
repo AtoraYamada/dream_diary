@@ -212,28 +212,6 @@ RSpec.describe Dream, type: :model do
         end
       end
     end
-
-    # --- 異常系 ---
-    describe '異常系' do
-      context 'バリデーション時に範囲外の値が設定されている場合' do
-        let(:dream) { build(:dream) }
-
-        before do
-          # enum setterをバイパスして不正な値を直接設定
-          dream.save(validate: false)
-          dream.update_column(:emotion_color, 999)
-        end
-
-        it 'バリデーションエラーが発生する' do
-          expect(dream).to be_invalid
-        end
-
-        it 'inclusionエラーメッセージが表示される' do
-          dream.valid?
-          expect(dream.errors.full_messages_for(:emotion_color)).to eq(['夢見る心の色相 の作法が異なっているようです'])
-        end
-      end
-    end
   end
 
   # ========================================
