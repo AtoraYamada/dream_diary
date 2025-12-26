@@ -20,6 +20,9 @@ gem 'devise', '~> 4.9'
 # ページネーション
 gem 'kaminari', '~> 1.2'
 
+# JSON API
+gem 'jbuilder', '~> 2.12'
+
 # CORS
 gem 'rack-cors', '~> 3.0'
 

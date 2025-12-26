@@ -96,3 +96,7 @@ ja:
   errors:
     messages:
       record_invalid: "バリデーションに失敗しました: %{errors}"
+
+  api:
+    errors:
+      not_found: "お探しのものは、ここには無いようです"

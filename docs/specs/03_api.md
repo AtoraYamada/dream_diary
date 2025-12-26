@@ -240,7 +240,7 @@ class Users::RegistrationsController < Devise::RegistrationsController
     else
       render json: {
         errors: resource.errors.messages
-      }, status: :unprocessable_entity
+      }, status: :unprocessable_content
     end
   end
 end
@@ -313,47 +313,14 @@ end
 }
 ```
 
-**実装**:
-```ruby
-# app/controllers/api/v1/dreams_controller.rb
-class Api::V1::DreamsController < ApplicationController
-  before_action :authenticate_user!
+**実装原則**:
+- `current_user.dreams` から取得
+- `includes(:tags)` でN+1対策
+- `recent` スコープで降順ソート
+- Kaminari で `page()`, `per()` によるページネーション
+- Jbuilder または手動JSONで `dream_summary` + `pagination_meta` 形式のレスポンス構築
 
-  def index
-    @dreams = current_user.dreams
-                          .includes(:tags)
-                          .recent
-                          .page(params[:page])
-                          .per(params[:per_page] || 12)
-
-    render json: {
-      dreams: @dreams.map { |dream| dream_summary(dream) },
-      pagination: pagination_meta(@dreams)
-    }
-  end
-
-  private
-
-  def dream_summary(dream)
-    {
-      id: dream.id,
-      title: dream.title,
-      emotion_color: dream.emotion_color,
-      dreamed_at: dream.dreamed_at,
-      tags: dream.tags.map { |tag| { id: tag.id, name: tag.name, category: tag.category } }
-    }
-  end
-
-  def pagination_meta(collection)
-    {
-      current_page: collection.current_page,
-      total_pages: collection.total_pages,
-      total_count: collection.total_count,
-      per_page: collection.limit_value
-    }
-  end
-end
-```
+詳細実装: `implementation_notes/day2_task5_api_green_phase_changes.md`
 
 ---
 
@@ -378,28 +345,12 @@ end
 }
 ```
 
-**実装**:
-```ruby
-def show
-  @dream = current_user.dreams.includes(:tags).find(params[:id])
-  render json: dream_detail(@dream)
-end
+**実装原則**:
+- `current_user.dreams.find(params[:id])` で取得（404自動ハンドリング）
+- `includes(:tags)` でN+1対策
+- Jbuilder または手動JSONで `dream_detail` 形式のレスポンス構築
 
-private
-
-def dream_detail(dream)
-  {
-    id: dream.id,
-    title: dream.title,
-    content: dream.content,
-    emotion_color: dream.emotion_color,
-    dreamed_at: dream.dreamed_at,
-    tags: dream.tags.map { |tag| { id: tag.id, name: tag.name, category: tag.category } },
-    created_at: dream.created_at,
-    updated_at: dream.updated_at
-  }
-end
-```
+詳細実装: `implementation_notes/day2_task5_api_green_phase_changes.md`
 
 ---
 
@@ -440,39 +391,14 @@ end
 }
 ```
 
-**実装**:
-```ruby
-def create
-  @dream = current_user.dreams.build(dream_params)
+**実装原則**:
+- `current_user.dreams.build(dream_params)` で作成
+- トランザクション内で実行
+- `tag_attributes` が存在する場合、`AttachTagsService` で関連付け
+- 成功: 201 Created + `dream_detail` 形式
+- 失敗: 422 Unprocessable Content + バリデーションエラー配列
 
-  if @dream.save
-    attach_tags(@dream, params[:dream][:tag_attributes])
-    render json: dream_detail(@dream), status: :created
-  else
-    render json: { errors: @dream.errors.full_messages }, status: :unprocessable_entity
-  end
-end
-
-private
-
-def dream_params
-  params.require(:dream).permit(:title, :content, :emotion_color, :dreamed_at)
-end
-
-def attach_tags(dream, tag_attrs)
-  return if tag_attrs.blank?
-
-  tag_attrs.each do |tag_attr|
-    tag = current_user.tags.find_or_create_by(
-      name: tag_attr[:name]
-    ) do |t|
-      t.yomi = tag_attr[:yomi]
-      t.category = tag_attr[:category]
-    end
-    dream.tags << tag unless dream.tags.include?(tag)
-  end
-end
-```
+詳細実装: `implementation_notes/day2_task5_api_green_phase_changes.md`
 
 ---
 
@@ -484,21 +410,14 @@ end
 
 **レスポンス（200 OK）**: 新規作成と同様
 
-**実装**:
-```ruby
-def update
-  @dream = current_user.dreams.find(params[:id])
+**実装原則**:
+- `current_user.dreams.find(params[:id])` で取得
+- トランザクション内で `update!` 実行
+- `UpdateTagsService` でタグを更新（既存タグclear + 新規タグattach）
+- 成功: 200 OK + `dream_detail` 形式
+- 失敗: 422 Unprocessable Content + バリデーションエラー配列
 
-  if @dream.update(dream_params)
-    # タグを更新
-    @dream.tags.clear
-    attach_tags(@dream, params[:dream][:tag_attributes])
-    render json: dream_detail(@dream)
-  else
-    render json: { errors: @dream.errors.full_messages }, status: :unprocessable_entity
-  end
-end
-```
+詳細実装: `implementation_notes/day2_task5_api_green_phase_changes.md`
 
 ---
 
@@ -508,14 +427,12 @@ end
 
 **レスポンス（204 No Content）**: 空レスポンス
 
-**実装**:
-```ruby
-def destroy
-  @dream = current_user.dreams.find(params[:id])
-  @dream.destroy
-  head :no_content
-end
-```
+**実装原則**:
+- `current_user.dreams.find(params[:id])` で取得
+- `destroy` 実行
+- 204 No Content 返却
+
+詳細実装: `implementation_notes/day2_task5_api_green_phase_changes.md`
 
 ---
 
@@ -551,28 +468,14 @@ end
 }
 ```
 
-**実装**:
-```ruby
-def search
-  @dreams = current_user.dreams.includes(:tags)
+**実装原則**:
+- キーワード検索: `search_by_keyword(keywords)` スコープ（title + content）
+- タグ検索: `tagged_with(tag_ids)` スコープ（AND条件）
+- `tag_ids` 使用時は `includes(:tags)` と `joins(:tags)` の競合に注意
+- ページネーション適用
+- `dream_summary` + `pagination_meta` 形式で返却
 
-  # キーワード検索（title + content）
-  @dreams = @dreams.search_by_keyword(params[:keywords]) if params[:keywords].present?
-
-  # タグ検索（AND条件）
-  if params[:tag_ids].present?
-    tag_ids = params[:tag_ids].split(',').map(&:to_i)
-    @dreams = @dreams.tagged_with(tag_ids)
-  end
-
-  @dreams = @dreams.recent.page(params[:page]).per(12)
-
-  render json: {
-    dreams: @dreams.map { |dream| dream_summary(dream) },
-    pagination: pagination_meta(@dreams)
-  }
-end
-```
+詳細実装: `implementation_notes/day2_task5_api_green_phase_changes.md`
 
 ---
 
@@ -593,37 +496,15 @@ end
 }
 ```
 
-**実装**:
-```ruby
-def overflow
-  dreams = current_user.dreams.order('RANDOM()').limit(10)
-  fragments = []
+**実装原則**:
+- `OverflowService` にロジック委譲
+- ランダムに10件の夢を取得
+- 文章を句点で分割してフラグメント化
+- データ不足時はフォールバック文章を使用
+- 5〜8個のフラグメントをランダム選択
+- DB移植性のため `Arel.sql('RANDOM()')` 使用（PostgreSQL/SQLiteで動作）
 
-  # 文章を句点で分割してランダムに5〜8文選択
-  dreams.each do |dream|
-    sentences = dream.content.split(/[。！？]/)
-    fragments.concat(sentences.reject(&:blank?))
-  end
-
-  # データ不足時のフォールバック
-  if fragments.size < 5
-    fallback_fragments = [
-      '遠くで鐘が鳴っている',
-      '鍵は開いたままだ',
-      '古びた本棚に埃が積もっている',
-      '森の奥から誰かが呼んでいる',
-      '月が二つ見える',
-      '時計の針が逆回りしている',
-      '窓の外に誰かの影が見える'
-    ]
-    fragments.concat(fallback_fragments)
-  end
-
-  selected = fragments.shuffle.take(rand(5..8))
-
-  render json: { fragments: selected }
-end
-```
+詳細実装: `implementation_notes/day2_task5_api_green_phase_changes.md`
 
 ---
 
@@ -661,36 +542,13 @@ end
 }
 ```
 
-**実装**:
-```ruby
-# app/controllers/api/v1/tags_controller.rb
-class Api::V1::TagsController < ApplicationController
-  before_action :authenticate_user!
+**実装原則**:
+- `current_user.tags` から取得
+- `by_category(category)` スコープでカテゴリフィルタ
+- `by_yomi_index(yomi_index)` スコープで五十音フィルタ
+- Jbuilder または手動JSONで `tag_summary` 形式のレスポンス構築
 
-  def index
-    @tags = current_user.tags.includes(:dreams)
-
-    @tags = @tags.by_category(params[:category]) if params[:category].present?
-    @tags = @tags.by_yomi_index(params[:yomi_index]) if params[:yomi_index].present?
-
-    render json: {
-      tags: @tags.map { |tag| tag_summary(tag) }
-    }
-  end
-
-  private
-
-  def tag_summary(tag)
-    {
-      id: tag.id,
-      name: tag.name,
-      yomi: tag.yomi,
-      yomi_index: tag.yomi_index,
-      category: tag.category,
-    }
-  end
-end
-```
+詳細実装: `implementation_notes/day2_task5_api_green_phase_changes.md`
 
 ---
 
@@ -714,18 +572,13 @@ end
 }
 ```
 
-**実装**:
-```ruby
-def suggest
-  @tags = current_user.tags.search_by_name_or_yomi(params[:query])
-  @tags = @tags.by_category(params[:category]) if params[:category].present?
-  @tags = @tags.limit(10)
+**実装原則**:
+- `search_by_name_or_yomi(query)` スコープで部分一致検索
+- `by_category(category)` スコープでカテゴリフィルタ（optional）
+- `limit(10)` で件数制限
+- Jbuilder または手動JSONで suggestions 配列を構築
 
-  render json: {
-    suggestions: @tags.map { |tag| { id: tag.id, name: tag.name, category: tag.category } }
-  }
-end
-```
+詳細実装: `implementation_notes/day2_task5_api_green_phase_changes.md`
 
 ---
 
@@ -735,14 +588,12 @@ end
 
 **レスポンス（204 No Content）**: 空レスポンス
 
-**実装**:
-```ruby
-def destroy
-  @tag = current_user.tags.find(params[:id])
-  @tag.destroy
-  head :no_content
-end
-```
+**実装原則**:
+- `current_user.tags.find(params[:id])` で取得（404自動ハンドリング）
+- `destroy` 実行
+- 204 No Content 返却
+
+詳細実装: `implementation_notes/day2_task5_api_green_phase_changes.md`
 
 ---
 
@@ -798,220 +649,33 @@ end
 
 ### フロントエンド（JavaScript）での対応
 
-すべての API リクエストは以下の構造でエラーハンドリングを実装してください：
-
-```javascript
-/**
- * API リクエスト（エラーハンドリング付き）
- */
-async function apiRequest(url, options = {}) {
-  const headers = {
-    'Content-Type': 'application/json',
-    'X-CSRF-Token': getCsrfToken(),
-    ...options.headers
-  };
-
-  try {
-    const response = await fetch(url, { ...options, headers });
-
-    // ステータスコード別の処理
-    if (!response.ok) {
-      const errorData = await response.json();
-
-      switch (response.status) {
-        case 400:
-          // バリデーションエラー
-          console.error('入力エラー:', errorData.errors);
-          showValidationError(errorData.errors);
-          throw new Error(errorData.message || 'Invalid input');
-
-        case 401:
-          // 認証エラー（セッション切れ等）
-          console.error('認証エラー');
-          showAuthError('セッションが切れています。再度ログインしてください。');
-          // ログイン画面へリダイレクト
-          navigateWithBlink('auth.html');
-          throw new Error('Unauthorized');
-
-        case 404:
-          // リソースが見つからない
-          console.error('リソース未検出:', errorData.message);
-          showError('データが見つかりません。');
-          throw new Error('Not found');
-
-        case 422:
-          // 処理不可（バリデーションエラー）
-          console.error('処理失敗:', errorData.errors);
-          showValidationError(errorData.errors);
-          throw new Error(errorData.message || 'Unprocessable entity');
-
-        case 500:
-          // サーバーエラー
-          console.error('サーバーエラー');
-          showError('サーバーエラーが発生しました。時間をおいて再度お試しください。');
-          throw new Error('Internal server error');
-
-        default:
-          console.error(`エラー（${response.status}）:`, errorData);
-          showError('予期しないエラーが発生しました。');
-          throw new Error(`HTTP ${response.status}`);
-      }
-    }
-
-    // 成功時のレスポンス処理
-    return await response.json();
-
-  } catch (error) {
-    // ネットワークエラーや JSON パース エラー
-    console.error('リクエスト失敗:', error);
-    showError('通信に失敗しました。ネットワーク接続を確認してください。');
-    throw error;
-  }
-}
-
-/**
- * バリデーションエラー表示
- * @param {Object} errors - エラーオブジェクト { field: ['message1', 'message2'] }
- */
-function showValidationError(errors) {
-  const errorElement = document.getElementById('error-container');
-  if (!errorElement) return;
-
-  const errorMessages = Object.entries(errors)
-    .map(([field, messages]) => `${field}: ${messages.join(', ')}`)
-    .join('\n');
-
-  errorElement.textContent = errorMessages;
-  errorElement.classList.add('visible');
-
-  setTimeout(() => {
-    errorElement.classList.remove('visible');
-  }, 5000);
-}
-
-/**
- * 認証エラー表示
- * @param {string} message - エラーメッセージ
- */
-function showAuthError(message) {
-  // 砂崩れアニメーション等で表示
-  const errorElement = document.getElementById('auth-error');
-  if (errorElement) {
-    errorElement.textContent = message;
-    errorElement.classList.add('sand-collapse');
-    playSound('sfx_sand_crumble.wav');
-
-    setTimeout(() => {
-      errorElement.classList.remove('sand-collapse');
-    }, 2000);
-  }
-}
-
-/**
- * 汎用エラー表示
- * @param {string} message - エラーメッセージ
- */
-function showError(message) {
-  // トースト通知等で表示
-  const errorElement = document.getElementById('error-toast');
-  if (errorElement) {
-    errorElement.textContent = message;
-    errorElement.classList.add('visible');
-
-    setTimeout(() => {
-      errorElement.classList.remove('visible');
-    }, 5000);
-  }
-}
-```
+**実装原則**:
+- `apiRequest(url, options)` 共通関数でエラーハンドリングを集約
+- CSRF トークンをヘッダーに含める（`X-CSRF-Token`）
+- ステータスコード別に switch 文で分岐
+  - 400/422: `showValidationError()` でバリデーションエラー表示
+  - 401: `showAuthError()` で認証エラー表示 + auth.html へリダイレクト
+  - 404: `showError()` でリソース未検出を通知
+  - 500: `showError()` でサーバーエラーを通知
+- ネットワークエラーは try-catch で捕捉
+- エラー表示は5秒後に自動消去
 
 ### バックエンド（Rails）での対応
 
-コントローラーでは必ず以下の構造でエラーレスポンスを返してください。**すべてのメッセージは `I18n.t()` を使用して ja.yml から取得します**：
+**実装原則**:
+- `Api::V1::BaseController` で `rescue_from` を使用してエラーハンドリングを集約
+- または `Api::ErrorHandling` Concern に切り出して include
+- 各エラーに対応する render メソッド（render_404, render_422 等）を実装
+- すべてのメッセージは `I18n.t()` を使用して `config/locales/ja.yml` から取得
+- バリデーションエラー（422）は `exception.record.errors.full_messages` を使用
+- サーバーエラー（500）は Rails.logger でログ出力
 
-```ruby
-# app/controllers/api/v1/base_controller.rb
-class Api::V1::BaseController < ApplicationController
-  rescue_from ActiveRecord::RecordNotFound, with: :render_404
-  rescue_from ActiveRecord::RecordInvalid, with: :render_422
+**必要な i18n キー** (`config/locales/ja.yml`):
+- `api.errors.not_found` (404 Not Found メッセージ用)
 
-  private
+**注**: 実装時に `bad_request` (400), `unauthorized` (401), `internal_server_error` (500) のエラーハンドリングも議論したが、現在の実装では必要最小限の `not_found` のみ実装。バリデーションエラー（422）は `errors.full_messages` を使用。その他のエラーは必要に応じて将来追加可能。
 
-  def render_400(errors)
-    render json: {
-      error: 'Bad Request',
-      message: I18n.t('api.errors.bad_request'),
-      errors: errors
-    }, status: :bad_request
-  end
-
-  def render_401
-    render json: {
-      error: 'Unauthorized',
-      message: I18n.t('api.errors.unauthorized')
-    }, status: :unauthorized
-  end
-
-  def render_404
-    render json: {
-      error: 'Not Found',
-      message: I18n.t('api.errors.not_found')
-    }, status: :not_found
-  end
-
-  def render_422(exception)
-    # バリデーションエラーをカスタマイズして日本語化
-    errors = exception.record.errors.messages.transform_values do |messages|
-      messages.map { |msg| translate_error_message(msg) }
-    end
-
-    render json: {
-      error: 'Unprocessable Entity',
-      errors: errors
-    }, status: :unprocessable_entity
-  end
-
-  def render_500(exception)
-    Rails.logger.error("Internal error: #{exception.message}")
-    render json: {
-      error: 'Internal Server Error',
-      message: I18n.t('api.errors.internal_server_error')
-    }, status: :internal_server_error
-  end
-
-  private
-
-  def translate_error_message(msg)
-    # バリデーションエラーメッセージを日本語化
-    # 例: "can't be blank" => I18n.t('api.errors.blank')
-    key_map = {
-      "can't be blank" => 'api.errors.blank',
-      "is too long" => 'api.errors.too_long',
-      "is not included in the list" => 'api.errors.invalid_enum'
-    }
-
-    key = key_map.keys.find { |k| msg.include?(k) }
-    key ? I18n.t(key_map[key]) : msg
-  end
-end
-```
-
-**対応する i18n 設定** (`config/locales/ja.yml`):
-```yaml
-ja:
-  api:
-    errors:
-      # HTTPステータス別メッセージ
-      bad_request: "リクエストが正しくありません"
-      unauthorized: "ログインしてから続けてください"
-      not_found: "見つかりません"
-      internal_server_error: "エラーが発生しました。時間をおいて再度お試しください"
-
-      # バリデーションエラーメッセージ
-      blank: "が記入されていません"
-      too_long: "が長すぎます"
-      invalid_enum: "が無効です"
-```
+詳細実装: `implementation_notes/day2_task5_api_green_phase_changes.md`
 
 ### 実装時の注意点
 
