@@ -244,7 +244,7 @@ RSpec.describe 'Api::V1::Tags', type: :request do
         it '404を返すこと' do
           delete "/api/v1/tags/#{other_tag.id}"
 
-          expect(response).to have_http_status(:unauthorized)
+          expect(response).to have_http_status(:not_found)
         end
       end
     end

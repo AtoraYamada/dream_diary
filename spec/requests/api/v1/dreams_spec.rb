@@ -231,7 +231,7 @@ RSpec.describe 'Api::V1::Dreams', type: :request do
         it '422を返すこと' do
           post '/api/v1/dreams', params: invalid_params
 
-          expect(response).to have_http_status(:unprocessable_entity)
+          expect(response).to have_http_status(:unprocessable_content)
           json = response.parsed_body
           expect(json).to have_key('errors')
         end
@@ -339,7 +339,7 @@ RSpec.describe 'Api::V1::Dreams', type: :request do
         it '422を返すこと' do
           put "/api/v1/dreams/#{dream.id}", params: invalid_params
 
-          expect(response).to have_http_status(:unprocessable_entity)
+          expect(response).to have_http_status(:unprocessable_content)
         end
       end
 
