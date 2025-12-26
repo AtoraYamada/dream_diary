@@ -116,8 +116,8 @@
             position: absolute;
             width: 20%;
             height: 40%;
-            left: 5%;
-            top: 20%;
+            left: 0%;
+            top: 10%;
             z-index: 7;
         }
 
@@ -126,7 +126,7 @@
             position: absolute;
             width: 15%;
             height: 35%;
-            right: 5%;
+            right: 0%;
             top: 25%;
             z-index: 8;
         }
@@ -474,7 +474,8 @@
         }
 
         .ink-bottle.selected {
-            border: 2px solid var(--color-brass); /* Highlight selected */
+            outline: 2px solid var(--color-brass); /* Highlight selected */
+            outline-offset: -2px; /* Draw outline inside the element */
             filter: brightness(1.5) drop-shadow(0px 5px 10px currentColor);
         }
 
@@ -672,6 +673,30 @@
                     createEditModalOverlay.classList.remove('active');
                     scrollMiddle.classList.remove('unfurl', 'roll-up');
 
+                    // scroll-middleの色とインクボトルの選択状態をリセット（瞬き中）
+                    const inkBottlesForReset = document.querySelectorAll('.ink-bottle');
+                    if (scrollMiddle) {
+                        scrollMiddle.style.backgroundColor = ''; // CSSデフォルトに戻す
+                    }
+                    inkBottlesForReset.forEach(b => b.classList.remove('selected'));
+                    console.log('[closeCreateEditModal] Scroll color and ink bottle selection reset during blink');
+
+                    // フォーム入力内容をクリア（保存時のリセット）
+                    const dreamTitleInput = document.getElementById('dream-title-input');
+                    const dreamTextarea = document.getElementById('dream-textarea');
+                    const characterTagInput = document.getElementById('character-tag-input');
+                    const locationTagInput = document.getElementById('location-tag-input');
+                    const characterTagsDisplay = document.getElementById('character-tags-display');
+                    const locationTagsDisplay = document.getElementById('location-tags-display');
+
+                    if (dreamTitleInput) dreamTitleInput.value = '';
+                    if (dreamTextarea) dreamTextarea.value = '';
+                    if (characterTagInput) characterTagInput.value = '';
+                    if (locationTagInput) locationTagInput.value = '';
+                    if (characterTagsDisplay) characterTagsDisplay.innerHTML = '';
+                    if (locationTagsDisplay) locationTagsDisplay.innerHTML = '';
+                    console.log('[closeCreateEditModal] Form inputs cleared for next use');
+
                     // 瞬き明け
                     setTimeout(() => {
                         console.log('[closeCreateEditModal] Opening eyes and restoring desk scroll mini...');
@@ -800,6 +825,38 @@
              * Deferred: Assets未到着のため、段階1（発光演出）のみ実装
              * Status: 詳細な仕様で実装準備完了、アセット到着時に実装可能
              * ============================================================ */
+
+            // Ink bottle click (感情選択 - scroll-middleの背景色変更)
+            const inkBottles = document.querySelectorAll('.ink-bottle');
+            const scrollMiddle = document.querySelector('.scroll-middle');
+
+            // 感情と色の対応
+            const emotionColors = {
+                peace: '#a0a9a6',
+                chaos: '#b07a70',
+                fear: '#838387',
+                elation: '#ca9e63'
+            };
+
+            inkBottles.forEach(bottle => {
+                bottle.addEventListener('click', () => {
+                    const emotion = bottle.dataset.emotion;
+
+                    // 全てのボトルから選択状態を解除
+                    inkBottles.forEach(b => b.classList.remove('selected'));
+
+                    // クリックしたボトルを選択状態に
+                    bottle.classList.add('selected');
+
+                    // scroll-middleの背景色を変更
+                    if (scrollMiddle && emotionColors[emotion]) {
+                        scrollMiddle.style.backgroundColor = emotionColors[emotion];
+                    }
+
+                    playSound('sfx_ui_confirm.wav'); // Asset: 選択・決定音
+                    console.log(`Emotion selected: ${emotion}, color: ${emotionColors[emotion]}`);
+                });
+            });
 
             // Mirror click (Logout - 目覚める儀式)
             mirror.addEventListener('click', () => {

@@ -486,16 +486,29 @@
     <script src="js/script.js"></script>
     <script>
         // グローバル関数: 詳細モーダルを開く
-        function openDetailModalInList(bookId) {
+        function openDetailModalInList(bookId, emotion = 'chaos') {
             const detailModalOverlay = document.getElementById('detail-modal-overlay');
+            const bookFrame = document.querySelector('.book-frame');
             const leftPage = document.getElementById('left-page');
             const rightPage = document.getElementById('right-page');
 
-            console.log('[openDetailModalInList] Starting detail modal open sequence for book:', bookId);
+            console.log('[openDetailModalInList] Starting detail modal open sequence for book:', bookId, 'emotion:', emotion);
 
             // 瞬き演出を実行（閉眼）
             closeEyes(() => {
                 console.log('[openDetailModalInList] Eyes closed, displaying modal...');
+
+                // 感情に応じてbook-frameの背景画像を変更
+                const emotionFrames = {
+                    peace: 'url("assets/img_book_open_frame_peace.png")',
+                    chaos: 'url("assets/img_book_open_frame_chaos.png")',
+                    fear: 'url("assets/img_book_open_frame_fear.png")',
+                    elation: 'url("assets/img_book_open_frame_elation.png")'
+                };
+                if (bookFrame && emotionFrames[emotion]) {
+                    bookFrame.style.backgroundImage = emotionFrames[emotion];
+                    console.log(`[openDetailModalInList] Book frame set to ${emotion} emotion`);
+                }
 
                 // closeEyesのコールバック：300ms後に実行される（閉眼完了）
                 // モーダルを表示
@@ -562,11 +575,19 @@
                 const bookSpine = event.target.closest('.book-spine');
                 if (bookSpine) {
                     const bookId = bookSpine.dataset.id;
-                    playSound('sfx_ui_confirm.wav'); // Asset: 選択・決定音
-                    console.log(`Clicked book with ID: ${bookId}`);
 
-                    // list.html内のモーダル関数を呼び出す
-                    openDetailModalInList(bookId);
+                    // 感情クラスを取得（peace, chaos, fear, elation）
+                    let emotion = 'chaos'; // デフォルト
+                    if (bookSpine.classList.contains('peace')) emotion = 'peace';
+                    else if (bookSpine.classList.contains('chaos')) emotion = 'chaos';
+                    else if (bookSpine.classList.contains('fear')) emotion = 'fear';
+                    else if (bookSpine.classList.contains('elation')) emotion = 'elation';
+
+                    playSound('sfx_ui_confirm.wav'); // Asset: 選択・決定音
+                    console.log(`Clicked book with ID: ${bookId}, emotion: ${emotion}`);
+
+                    // list.html内のモーダル関数を呼び出す（感情を渡す）
+                    openDetailModalInList(bookId, emotion);
                 }
             });
 

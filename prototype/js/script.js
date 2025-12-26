@@ -458,7 +458,7 @@ function updateBookshelfDisplay(dreamCount) {
 // ダミーデータで動作確認（prototype段階）
 // library.htmlが読み込まれた時にのみ実行
 if (document.getElementById('bookshelf')) {
-    const dummyDreamCount = 2; // 仮の夢の数（0, 1-3, 4-7, 8以上で本棚画像が変わる）
+    const dummyDreamCount = 4; // 仮の夢の数（0, 1-3, 4-7, 8以上で本棚画像が変わる）
     updateBookshelfDisplay(dummyDreamCount);
 }
 
