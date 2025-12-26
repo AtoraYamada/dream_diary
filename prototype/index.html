@@ -79,14 +79,14 @@
             left: 30px;
             width: 150px;
             height: 100px;
-            background-color: var(--color-paper); /* Placeholder for img_scratchpad_paper.png */
-            /* background-image: url('assets/img_scratchpad_paper.png'); */
+            background-image: url('assets/img_scratchpad_paper.png');
             background-size: contain;
             background-repeat: no-repeat;
             background-position: center;
             z-index: 90; /* Lower than door-area to avoid blocking it */
             cursor: pointer;
-            border: 1px solid var(--color-ink-light); /* Added for visibility */
+            transform: rotate(-8deg);
+            transition: opacity 0.3s ease-in-out;
         }
         .scratchpad-trigger:hover {
             filter: brightness(1.1);
@@ -103,27 +103,37 @@
             justify-content: center;
             align-items: center;
             z-index: 300; /* Higher than door-area and mute-button */
-            display: none; /* Hidden by default */
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease-in-out;
+        }
+        .scratchpad-overlay.visible {
+            opacity: 1;
+            pointer-events: auto;
         }
 
         .scratchpad-content {
             position: relative;
-            background-color: var(--color-paper); /* Placeholder for img_scratchpad_paper.png */
-            /* background-image: url('assets/img_scratchpad_paper.png'); */
+            background-image: url('assets/img_scratchpad_paper.png');
             background-size: 100% 100%; /* Stretch to fit */
-            padding: 30px 40px; /* Inner padding for text area */
+            padding: 50px 40px 30px 40px; /* top right bottom left */
             width: 600px; /* Fixed width */
             height: 500px; /* Fixed height */
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
-            border: 2px solid var(--color-ink-light);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: flex-start;
+            transform: scale(0.95);
+            opacity: 0;
+            transition: transform 0.5s ease-in-out, opacity 0.5s ease-in-out;
+        }
+        .scratchpad-overlay.visible .scratchpad-content {
+            transform: scale(1);
+            opacity: 1;
         }
 
         .scratchpad-content textarea {
-            width: 100%;
+            width: 90%;
             flex-grow: 1; /* Fill available space */
             background: transparent; /* No background, text sits on paper image */
             border: none;
@@ -141,6 +151,10 @@
         .scratchpad-content textarea::-webkit-scrollbar {
             display: none; /* Chrome, Safari and Opera */
         }
+        .scratchpad-content textarea::placeholder {
+            color: var(--color-ink-light);
+            opacity: 1;
+        }
 
         .scratchpad-close {
             margin-top: 15px;
@@ -149,7 +163,7 @@
             border: 1px solid var(--color-brass);
             padding: 8px 20px;
             cursor: pointer;
-            font-family: var(--font-pixel);
+            font-family: var(--font-serif);
             font-size: 14px;
             align-self: center;
         }
@@ -285,19 +299,27 @@
 
             // Scratchpad trigger
             scratchpadTrigger.addEventListener('click', () => {
-                scratchpadOverlay.style.display = 'flex';
-                // Load saved content
-                const savedContent = loadFromLocalStorage('scratchpad_content');
-                if (savedContent) {
-                    scratchpadTextarea.value = savedContent;
-                }
-                scratchpadTextarea.focus();
-                playSound('sfx_paper_unfurl.wav'); // Asset: 紙が広がる音 (スクラッチパッド開く時)
+                scratchpadTrigger.style.opacity = '0'; // Fade out trigger first
+                setTimeout(() => {
+                    scratchpadTrigger.style.display = 'none'; // Hide trigger
+                    scratchpadOverlay.classList.add('visible'); // Then fade in overlay
+                    // Load saved content
+                    const savedContent = loadFromLocalStorage('scratchpad_content');
+                    if (savedContent) {
+                        scratchpadTextarea.value = savedContent;
+                    }
+                    scratchpadTextarea.focus();
+                    playSound('sfx_paper_unfurl.wav'); // Asset: 紙が広がる音 (スクラッチパッド開く時)
+                }, 300); // Wait for trigger fade out to complete
             });
 
             // Close scratchpad
             scratchpadCloseButton.addEventListener('click', () => {
-                scratchpadOverlay.style.display = 'none';
+                scratchpadOverlay.classList.remove('visible'); // Fade out overlay
+                setTimeout(() => {
+                    scratchpadTrigger.style.display = 'block'; // Show trigger
+                    setTimeout(() => scratchpadTrigger.style.opacity = '1', 10); // Fade in trigger
+                }, 300); // Wait for overlay transition to complete
                 playSound('sfx_ui_confirm.wav'); // Asset: 選択・決定音
             });
 

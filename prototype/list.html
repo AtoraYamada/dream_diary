@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="ja" class="after-door">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -38,10 +38,10 @@
 
         .bookshelf-display {
             position: relative;
-            width: 80%; /* Adjust as needed */
+            width: 80%;
             height: 80%;
-            background-color: #4a2c0f; /* Placeholder for bookshelf */
-            /* background-image: url('assets/img_bookshelf_empty.png'); */ /* Asset: 本棚本体 */
+            top: 9.5%;
+            background-image: url('assets/img_bookshelf_empty.png'); /* Asset: 本棚本体 */
             background-size: contain;
             background-repeat: no-repeat;
             background-position: center;
@@ -50,7 +50,6 @@
             align-items: center;
             padding: 5% 0; /* Vertical padding for shelves */
             box-sizing: border-box;
-            border: 2px solid var(--color-dark-wood); /* Added for visual definition */
         }
 
         .book-spines-container {
@@ -64,17 +63,15 @@
             z-index: 2; /* Above bookshelf background */
         }
 
+
         .book-spine {
             width: 30px; /* Width of a book spine */
             height: 150px; /* Height of a book spine */
             position: relative;
             cursor: pointer;
             overflow: hidden;
-            /* background-image: url('assets/img_book_spine_base.png'); */ /* Asset: 本：背表紙パーツ (質感透過) */
             background-size: 100% 100%;
             background-repeat: no-repeat;
-            background-color: var(--color-peace); /* Example emotion color - Placeholder for img_book_spine_base.png texture */
-            border: 1px solid var(--color-brass-dark); /* Added for visual definition */
             writing-mode: vertical-rl; /* Vertical text */
             text-orientation: upright;
             color: var(--color-paper);
@@ -85,7 +82,21 @@
             justify-content: center;
             align-items: center;
             box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
-            transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        /* Emotion-specific book spine backgrounds */
+        .book-spine.peace {
+            background-image: url('assets/img_book_spine_peace.png'); /* Asset: 安らぎの感情色 */
+        }
+        .book-spine.chaos {
+            background-image: url('assets/img_book_spine_chaos.png'); /* Asset: 混沌の感情色 */
+        }
+        .book-spine.fear {
+            background-image: url('assets/img_book_spine_fear.png'); /* Asset: 恐怖の感情色 */
+        }
+        .book-spine.elation {
+            background-image: url('assets/img_book_spine_elation.png'); /* Asset: 高揚の感情色 */
         }
 
         .book-spine:hover {
@@ -107,32 +118,6 @@
             opacity: 1; /* Show title on hover */
         }
 
-        /* Overlay for bookshelf fullness */
-        .library-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: center;
-            z-index: 1; /* Below book spines */
-            opacity: 0.5; /* Subtle overlay */
-        }
-
-        .library-overlay.small {
-            /* background-image: url('assets/img_library_overlay_small.png'); */ /* Asset: 蔵書テクスチャ（小） */
-            background-color: rgba(139, 69, 19, 0.5); /* Placeholder for small library overlay */
-        }
-        .library-overlay.medium {
-            /* background-image: url('assets/img_library_overlay_medium.png'); */ /* Asset: 蔵書テクスチャ（中） */
-            background-color: rgba(139, 69, 19, 0.6); /* Placeholder for medium library overlay */
-        }
-        .library-overlay.large {
-            /* background-image: url('assets/img_library_overlay_large.png'); */ /* Asset: 蔵書テクスチャ（大） */
-            background-color: rgba(139, 69, 19, 0.7); /* Placeholder for large library overlay */
-        }
 
         /* Pagination controls */
         .pagination-left, .pagination-right {
@@ -160,14 +145,11 @@
         /* Index Box */
         .index-box-trigger {
             position: absolute;
-            bottom: 10%; /* Approximate position */
-            right: 5%;
-            width: 100px;
-            height: 120px;
-            /* background-image: url('assets/img_index_box_exterior.png'); */ /* Asset: 索引箱の外装 */
-            background-color: var(--color-gold); /* Placeholder for index box */
-            border: 2px solid var(--color-brass-dark);
-            border-radius: 5px;
+            bottom: 0%;
+            right: 2%;
+            width: 130px;
+            height: 156px;
+            background-image: url('assets/img_index_box_exterior.png'); /* Asset: 索引箱の外装 */
             background-size: contain;
             background-repeat: no-repeat;
             background-position: center;
@@ -184,23 +166,15 @@
             position: absolute;
             top: 20px;
             left: 20px;
-            width: 40px;
-            height: 40px;
-            /* background-image: url('assets/icon_back.png'); */ /* Asset: 操作アイコン/戻る */
-            background-color: var(--color-ink); /* Placeholder for back button */
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: var(--color-paper);
-            font-size: 20px;
-            font-weight: bold;
+            width: 60px;
+            height: 60px;
+            background-image: url('assets/icon_back.png'); /* Asset: 操作アイコン/戻る */
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
             cursor: pointer;
             z-index: 15;
             filter: drop-shadow(0px 2px 2px rgba(0,0,0,0.4));
-        }
-        .back-button::before {
-            content: "❮"; /* Unicode left arrow */
         }
         .back-button:hover {
             filter: brightness(1.2) drop-shadow(0px 2px 2px rgba(0,0,0,0.4));
@@ -231,6 +205,10 @@
         .index-card-modal-overlay .drawer-container {
              /* Add styles for the drawer container when it's inside the modal */
             position: relative; /* To position the close button */
+            background-image: url('assets/img_index_box_interior.png'); /* Asset: 索引箱の内装 */
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+            background-position: center;
         }
 
         .index-card-modal-overlay .close-button {
@@ -278,8 +256,8 @@
         /* Open Book Container (見開き本) */
         .open-book-container {
             position: relative;
-            width: 800px; /* Example size */
-            height: 500px;
+            width: 880px; /* 1.1x larger */
+            height: 550px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -291,31 +269,27 @@
             position: absolute;
             width: 100%;
             height: 100%;
-            /* Asset: img_book_open_frame.png (開かれた本のフレーム) */
-            /* background-image: url('assets/img_book_open_frame.png'); */
-            background-color: transparent; /* Placeholder - frame will be implied by page borders */
+            background-image: url('assets/img_book_open_frame_chaos.png'); /* Asset: 開かれた本のフレーム(混沌) */
             background-size: 100% 100%;
             background-repeat: no-repeat;
             z-index: 3;
-            border: 3px solid var(--color-dark-wood); /* Added border to imply book frame */
-            border-radius: 10px;
         }
 
         .book-page {
             position: absolute;
             width: 45%; /* Each page takes almost half the book frame width */
-            height: 90%; /* Height of page */
-            top: 5%;
+            height: 97%;
+            top: 1%;
             background-color: var(--color-paper); /* Default paper color */
-            padding: 20px;
+            padding: 40px 20px;
             box-sizing: border-box;
             overflow-y: auto;
-            font-family: var(--font-serif);
-            font-size: 16px;
+            font-family: var(--font-pixel);
+            font-size: 14px;
             line-height: 1.6;
             color: var(--color-ink);
             -ms-overflow-style: none; scrollbar-width: none;
-            z-index: 1; /* Below frame */
+            z-index: 4; /* Above frame */
         }
         .book-page::-webkit-scrollbar { display: none; }
 
@@ -342,19 +316,15 @@
             position: fixed;
             bottom: calc(5% + 20px);  /* Bottom of modal viewport area + margin */
             right: calc(5% + 20px);   /* Right of modal viewport area + margin */
-            width: 60px;
-            height: 60px;
-            /* Asset: icon_hourglass_antique.png (アンティーク砂時計アイコン) */
-            /* background-image: url('assets/icon_hourglass_antique.png'); */
-            background-color: var(--color-brass); /* Placeholder for hourglass icon */
-            border-radius: 30% 30% 50% 50%; /* Hourglass shape approximation */
+            width: 90px;
+            height: 90px;
+            background-image: url('assets/icon_hourglass_antique.png'); /* Asset: アンティーク砂時計アイコン */
             background-size: contain;
             background-repeat: no-repeat;
             background-position: center;
             cursor: pointer;
             z-index: 9100;  /* Above modal overlay but below blink */
             filter: drop-shadow(0px 5px 5px rgba(0,0,0,0.4));
-            border: 2px solid var(--color-brass-dark);
         }
         .hourglass-delete-btn:hover {
             filter: brightness(1.2) drop-shadow(0px 5px 5px rgba(0,0,0,0.4));
@@ -368,21 +338,17 @@
 
         .edit-quill-knife-btn {
             position: fixed;
-            bottom: calc(5% + 100px);  /* Above hourglass */
+            bottom: calc(5% + 130px);  /* Above hourglass with more spacing */
             right: calc(5% + 20px);     /* Same right position as hourglass */
-            width: 60px;
-            height: 60px;
-            /* Asset: icon_edit_quill_knife.png (羽ペンとナイフの編集アイコン) */
-            /* background-image: url('assets/icon_edit_quill_knife.png'); */
-            background-color: var(--color-ink-light); /* Placeholder for quill/knife icon */
-            clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); /* Diamond shape approximation for knife */
+            width: 90px;
+            height: 90px;
+            background-image: url('assets/icon_edit_quill_knife.png'); /* Asset: 羽ペンとナイフの編集アイコン */
             background-size: contain;
             background-repeat: no-repeat;
             background-position: center;
             cursor: pointer;
             z-index: 9100;  /* Above modal overlay but below blink */
             filter: drop-shadow(0px 5px 5px rgba(0,0,0,0.4));
-            border: 2px solid var(--color-brass-dark);
         }
         .edit-quill-knife-btn:hover {
             filter: brightness(1.2) drop-shadow(0px 5px 5px rgba(0,0,0,0.4));
@@ -397,22 +363,21 @@
 
         <div class="bookshelf-display">
             <!-- Asset: img_bookshelf_empty.png is background (本棚本体) -->
-            <div class="library-overlay medium" id="library-overlay"></div> <!-- Placeholder for fullness (蔵書量に応じたテクスチャオーバーレイ) -->
 
             <div class="book-spines-container" id="book-spines-container">
                 <!-- Example book spines (本の背表紙) -->
-                <div class="book-spine" data-title="最初の夢" data-id="1" style="background-color: var(--color-peace);"></div>
-                <div class="book-spine" data-title="混沌の夜" data-id="2" style="background-color: var(--color-chaos);"></div>
-                <div class="book-spine" data-title="恐怖の影" data-id="3" style="background-color: var(--color-fear);"></div>
-                <div class="book-spine" data-title="高揚の空" data-id="4" style="background-color: var(--color-elation);"></div>
-                <div class="book-spine" data-title="古城の秘密" data-id="5" style="background-color: var(--color-peace);"></div>
-                <div class="book-spine" data-title="森の記憶" data-id="6" style="background-color: var(--color-peace);"></div>
-                <div class="book-spine" data-title="無限回廊" data-id="7" style="background-color: var(--color-chaos);"></div>
-                <div class="book-spine" data-title="忘れられた歌" data-id="8" style="background-color: var(--color-fear);"></div>
-                <div class="book-spine" data-title="星の彼方" data-id="9" style="background-color: var(--color-elation);"></div>
-                <div class="book-spine" data-title="月の涙" data-id="10" style="background-color: var(--color-peace);"></div>
-                <div class="book-spine" data-title="古びた地図" data-id="11" style="background-color: var(--color-chaos);"></div>
-                <div class="book-spine" data-title="砂の城" data-id="12" style="background-color: var(--color-fear);"></div>
+                <div class="book-spine peace" data-title="最初の夢" data-id="1"></div>
+                <div class="book-spine chaos" data-title="混沌の夜" data-id="2"></div>
+                <div class="book-spine fear" data-title="恐怖の影" data-id="3"></div>
+                <div class="book-spine elation" data-title="高揚の空" data-id="4"></div>
+                <div class="book-spine peace" data-title="古城の秘密" data-id="5"></div>
+                <div class="book-spine peace" data-title="森の記憶" data-id="6"></div>
+                <div class="book-spine chaos" data-title="無限回廊" data-id="7"></div>
+                <div class="book-spine fear" data-title="忘れられた歌" data-id="8"></div>
+                <div class="book-spine elation" data-title="星の彼方" data-id="9"></div>
+                <div class="book-spine peace" data-title="月の涙" data-id="10"></div>
+                <div class="book-spine chaos" data-title="古びた地図" data-id="11"></div>
+                <div class="book-spine fear" data-title="砂の城" data-id="12"></div>
             </div>
         </div>
 
@@ -570,7 +535,6 @@
             const paginationLeft = document.getElementById('pagination-left');
             const paginationRight = document.getElementById('pagination-right');
             const indexBoxTrigger = document.getElementById('index-box-trigger');
-            const libraryOverlay = document.getElementById('library-overlay');
             const detailModalOverlay = document.getElementById('detail-modal-overlay');
 
             // Index Card Modal elements
@@ -582,20 +546,6 @@
                     closeDetailModalInList();
                 }
             });
-
-            // Simulate bookshelf fullness based on number of books
-            function updateLibraryOverlay() {
-                const bookCount = bookSpinesContainer.children.length;
-                libraryOverlay.classList.remove('small', 'medium', 'large');
-                if (bookCount > 0 && bookCount <= 5) {
-                    libraryOverlay.classList.add('small'); // Asset: 蔵書テクスチャ（小）
-                } else if (bookCount > 5 && bookCount <= 10) {
-                    libraryOverlay.classList.add('medium'); // Asset: 蔵書テクスチャ（中）
-                } else if (bookCount > 10) {
-                    libraryOverlay.classList.add('large'); // Asset: 蔵書テクスチャ（大）
-                }
-            }
-            updateLibraryOverlay(); // Initial update
 
             backButton.addEventListener('click', () => {
                 playSound('sfx_ui_confirm.wav'); // Asset: 選択・決定音
@@ -637,6 +587,7 @@
                 playSound('sfx_index_box_open_close.wav'); // Asset: 索引箱の開閉音
                 initiateBlinkTransition(() => {
                     console.log('Opening index card modal');
+                    indexBoxTrigger.style.display = 'none'; // Hide trigger when modal opens
                     indexCardModal.classList.add('visible');
                     initIndexCardModal(); // Initialize modal functionality
                 });
@@ -650,6 +601,7 @@
                     initiateBlinkTransition(() => {
                         console.log('Closing index card modal by overlay click');
                         indexCardModal.classList.remove('visible');
+                        indexBoxTrigger.style.display = 'block'; // Show trigger when modal closes
                     });
                 }
             });

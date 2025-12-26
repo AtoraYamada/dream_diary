@@ -46,6 +46,11 @@ html.awakening body::before {
     height: 120%;
 }
 
+/* After-door pages use pixel font (DotGothic16) */
+html.after-door body {
+    font-family: var(--font-pixel);
+}
+
 body {
     margin: 0;
     font-family: var(--font-serif);
@@ -60,6 +65,20 @@ body {
     min-height: 100vh;
     overflow: hidden;
     cursor: default;
+}
+
+/* カーソル画像適用 */
+/* 羽ペンカーソル（巻物展開中） */
+.scroll-middle.unfurl,
+.scroll-middle.unfurl textarea,
+.scroll-middle.unfurl input {
+    cursor: url('../assets/cursor_quill.png') 0 24, auto;
+}
+
+/* 鉛筆カーソル（トップページ入力中） */
+#scratchpad-textarea,
+#scratchpad-textarea:focus {
+    cursor: url('../assets/cursor_pencil.png') 0 24, auto;
 }
 
 /* 余白（額縁）の背景 */
@@ -340,8 +359,10 @@ html.will-open-eyes::before {
 .tag-card {
     width: 180px; height: 100px;
     position: relative; /* ピン留めアイコンの配置用 */
-    background-color: var(--color-paper); /* Asset: 紙の質感 */
-    border: 1px solid var(--color-brass-dark); /* Asset: 暗い真鍮の縁取り */
+    background-image: url('../assets/img_tag_card_base.png'); /* Asset: タグカード基底 */
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    background-position: center;
     box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.4); /* Asset: 汎用影テクスチャ */
     padding: 10px;
     font-family: var(--font-pixel);
@@ -394,32 +415,22 @@ html.will-open-eyes::before {
 /* Delete Tag Icon Styles */
 .delete-tag-icon {
     position: absolute;
-    bottom: 8px; /* Adjust position */
-    right: 8px;  /* Adjust position */
+    bottom: 8px;
+    right: 8px;
     width: 24px;
     height: 24px;
-    background-color: rgba(150, 150, 150, 0.5); /* Grey placeholder background */
-    border: 1px solid var(--color-brass-dark);
+    background-image: url('../assets/img_tag_delete.png'); /* Asset: 破れた紙片 */
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
     cursor: pointer;
-    opacity: 0.8; /* Subtle by default */
-    transition: opacity 0.2s, background-color 0.2s;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-family: var(--font-pixel);
-    font-size: 10px; /* Smaller text */
-    color: var(--color-ink); /* Text color */
-    z-index: 15; /* Ensure it's above other elements if needed */
-}
-
-.delete-tag-icon::before {
-    content: 'IMG'; /* Placeholder text for image - Asset: 破れた紙片 */
-    line-height: 1; /* Align vertically */
+    opacity: 0.8;
+    transition: opacity 0.2s;
+    z-index: 15;
 }
 
 .delete-tag-icon:hover {
     opacity: 1;
-    background-color: rgba(180, 180, 180, 0.7); /* Lighter grey on hover */
 }
 
 /* Deletion Effect Animation */
