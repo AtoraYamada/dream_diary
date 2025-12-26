@@ -232,21 +232,18 @@ docker compose exec web rails g model DreamTag dream:references tag:references
 - `03_api.md` § ルーティング設定
 - `03_api.md` § Dreams API
 - `03_api.md` § Tags API
-- `03_api.md` § エラーレスポンス共通形式
 - `03_api.md` § エラーハンドリング実装ガイドライン
-- `03_api.md` § バックエンド（Rails）での対応
-- `03_api.md` § 実装時の注意点
-- `03_api.md` § エンドポイント別エラーレスポンス詳細
+- `implementation_notes/day2_task4_api_implementation_guide.md` § 全体参照
 
 **実装内容**:
 - `config/routes.rb` 編集（namespace :api）
-- `Api::V1::DreamsController` 実装
-  - index, show, create, update, destroy, search, overflow
-- `Api::V1::TagsController` 実装
-  - index, suggest, destroy
+- コントローラー実装（BaseController, DreamsController, TagsController）
+- `Api::ErrorHandling` Concern 実装
+- Service Object 実装（AttachTags, UpdateTags, Search, Overflow, ServiceResult）
+- Jbuilder ビュー実装（Dreams/Tags + partials）
+- Gem追加（jbuilder, kaminari）
 - CORS設定（rack-cors gem）
 - 認証設定（Devise authenticate_user!）
-- JSONレスポンス形式統一
 - テストがすべてパスすることを確認
 
 **完了後の自動処理**:

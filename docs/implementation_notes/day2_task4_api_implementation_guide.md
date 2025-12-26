@@ -86,10 +86,10 @@ def create
     if result.success?
       render :create, status: :created
     else
-      render json: { errors: result.errors }, status: :unprocessable_entity
+      render json: { errors: result.errors }, status: :unprocessable_content
     end
   else
-    render json: { errors: @dream.errors.full_messages }, status: :unprocessable_entity
+    render json: { errors: @dream.errors.full_messages }, status: :unprocessable_content
   end
 end
 ```
