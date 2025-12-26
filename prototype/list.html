@@ -40,6 +40,8 @@
             position: relative;
             width: 80%;
             height: 80%;
+            min-height: 600px; /* Ensure minimum height for tab display (778px viewport) */
+            max-height: 630px; /* Fix relative position between bookshelf and book-spine */
             top: 9.5%;
             background-image: url('assets/img_bookshelf_empty.png'); /* Asset: 本棚本体 */
             background-size: contain;
@@ -66,12 +68,13 @@
 
         .book-spine {
             width: 30px; /* Width of a book spine */
-            height: 150px; /* Height of a book spine */
+            height: 150px;
             position: relative;
             cursor: pointer;
             overflow: hidden;
             background-size: 100% 100%;
             background-repeat: no-repeat;
+
             writing-mode: vertical-rl; /* Vertical text */
             text-orientation: upright;
             color: var(--color-paper);
@@ -124,14 +127,14 @@
             position: absolute;
             top: 50%;
             transform: translateY(-50%);
-            width: 80px;
-            height: 100px;
+            width: clamp(60px, 6vw, 80px);
+            height: clamp(80px, 8vh, 100px);
             background-color: rgba(0, 0, 0, 0.3);
             display: flex;
             justify-content: center;
             align-items: center;
             color: white;
-            font-size: 30px;
+            font-size: clamp(24px, 2.5vw, 30px);
             cursor: pointer;
             z-index: 10;
             transition: background-color 0.2s;
@@ -147,8 +150,8 @@
             position: absolute;
             bottom: 0%;
             right: 2%;
-            width: 130px;
-            height: 156px;
+            width: clamp(100px, 10vw, 130px);
+            height: clamp(120px, 12vw, 156px);
             background-image: url('assets/img_index_box_exterior.png'); /* Asset: 索引箱の外装 */
             background-size: contain;
             background-repeat: no-repeat;
@@ -166,8 +169,8 @@
             position: absolute;
             top: 20px;
             left: 20px;
-            width: 60px;
-            height: 60px;
+            width: clamp(50px, 5vw, 60px);
+            height: clamp(50px, 5vw, 60px);
             background-image: url('assets/icon_back.png'); /* Asset: 操作アイコン/戻る */
             background-size: contain;
             background-repeat: no-repeat;
@@ -256,8 +259,10 @@
         /* Open Book Container (見開き本) */
         .open-book-container {
             position: relative;
-            width: 880px; /* 1.1x larger */
-            height: 550px;
+            width: 90%;
+            max-width: 880px;
+            height: auto;
+            aspect-ratio: 8 / 5; /* Maintain 880:550 ratio */
             display: flex;
             justify-content: center;
             align-items: center;
@@ -316,8 +321,8 @@
             position: fixed;
             bottom: calc(5% + 20px);  /* Bottom of modal viewport area + margin */
             right: calc(5% + 20px);   /* Right of modal viewport area + margin */
-            width: 90px;
-            height: 90px;
+            width: clamp(70px, 7vw, 90px);
+            height: clamp(70px, 7vw, 90px);
             background-image: url('assets/icon_hourglass_antique.png'); /* Asset: アンティーク砂時計アイコン */
             background-size: contain;
             background-repeat: no-repeat;
@@ -340,8 +345,8 @@
             position: fixed;
             bottom: calc(5% + 130px);  /* Above hourglass with more spacing */
             right: calc(5% + 20px);     /* Same right position as hourglass */
-            width: 90px;
-            height: 90px;
+            width: clamp(70px, 7vw, 90px);
+            height: clamp(70px, 7vw, 90px);
             background-image: url('assets/icon_edit_quill_knife.png'); /* Asset: 羽ペンとナイフの編集アイコン */
             background-size: contain;
             background-repeat: no-repeat;
