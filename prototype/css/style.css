@@ -242,8 +242,6 @@ html.will-open-eyes::before {
 .drawer-container {
     width: 800px;
     height: 600px;
-    background-color: var(--color-light-wood); /* Asset: 木の質感のある背景 */
-    border: 5px solid #2a221f; /* Asset: 暗い縁取り */
     box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.7), 0 10px 20px rgba(0, 0, 0, 0.5); /* Asset: 汎用影テクスチャ */
     position: relative;
     display: flex;

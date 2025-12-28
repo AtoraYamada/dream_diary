@@ -277,7 +277,13 @@
             left: 0;
             width: 100%;
             height: 100%;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            background-color: rgba(0, 0, 0, 0.3);
             z-index: 9000;  /* blink overlay (10000) より低いが、他の要素より高い */
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.3s ease-out;
@@ -759,9 +765,15 @@
                 closeEyes(() => {
                     console.log('[closeCreateEditModal] Eyes closed, preparing modal closure...');
 
+                    // 瞬き中にモーダルを確実に消すため、transitionを一時的に無効化
+                    createEditModalOverlay.style.transition = 'none';
+
                     // 瞬き中にモーダルを閉じる
                     createEditModalOverlay.classList.remove('active');
                     scrollMiddle.classList.remove('unfurl', 'roll-up');
+
+                    // 残像を完全に消すため、heightを明示的に0にリセット
+                    scrollMiddle.style.height = '0';
 
                     // scroll-middleの色とインクボトルの選択状態をリセット（瞬き中）
                     const inkBottlesForReset = document.querySelectorAll('.ink-bottle');
@@ -791,6 +803,11 @@
                     setTimeout(() => {
                         console.log('[closeCreateEditModal] Opening eyes and restoring desk scroll mini...');
                         openEyes();
+
+                        // 次回表示のため、transitionを元に戻す
+                        setTimeout(() => {
+                            createEditModalOverlay.style.transition = '';
+                        }, 100);
                     }, 50);
 
                     // 縮小版巻物とテキストを瞬きのタイミングで確実に再表示
