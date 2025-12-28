@@ -315,9 +315,10 @@ function initIndexCardModal() {
     if (resetButton) {
         resetButton.addEventListener('click', () => {
             playSound('sfx_ui_confirm.wav'); // Asset: 選択・決定音 (全クリア)
-            
+
             // モーダル外クリック時と同じ処理を使用（瞬き演出 + モーダルクローズ）
             const indexCardModal = document.getElementById('index-card-modal');
+            const indexBoxTrigger = document.getElementById('index-box-trigger');
             initiateBlinkTransition(() => {
                 // closeEyesのコールバック：瞬き中にリセット処理を実行
                 tagFilterInput.value = '';
@@ -327,9 +328,10 @@ function initIndexCardModal() {
                 allCards.forEach(card => card.classList.remove('selected', 'filtered-out'));
                 updateSelectedTagsDisplay();
                 filterCards();
-                
+
                 console.log('Closing index card modal by reset button');
                 indexCardModal.classList.remove('visible');
+                if (indexBoxTrigger) indexBoxTrigger.style.display = 'block'; // Show trigger when modal closes
             });
         });
     }
@@ -341,12 +343,14 @@ function initIndexCardModal() {
             console.log('選択中のタグ:', Array.from(selectedTagNames));
             console.log('本文検索キーワード:', bodySearchInput.value);
             playSound('sfx_ui_confirm.wav'); // Asset: 選択・決定音 (検索実行)
-            
+
             // モーダル外クリック時と同じ処理を使用
             const indexCardModal = document.getElementById('index-card-modal');
+            const indexBoxTrigger = document.getElementById('index-box-trigger');
             initiateBlinkTransition(() => {
                 console.log('Closing index card modal by match button');
                 indexCardModal.classList.remove('visible');
+                if (indexBoxTrigger) indexBoxTrigger.style.display = 'block'; // Show trigger when modal closes
             });
         });
     }
@@ -404,3 +408,88 @@ function initIndexCardModal() {
     }
 }
 
+/**
+ * 本棚の表示を夢の数に応じて更新（書斎画面用）
+ * @param {number} dreamCount - 夢の数
+ */
+function updateBookshelfDisplay(dreamCount) {
+    const bookshelf = document.getElementById('bookshelf');
+    if (!bookshelf) {
+        console.warn('[updateBookshelfDisplay] bookshelf element not found');
+        return;
+    }
+
+    // 既存のクラスを削除
+    bookshelf.classList.remove(
+        'bookshelf-empty',
+        'bookshelf-small',
+        'bookshelf-medium',
+        'bookshelf-large'
+    );
+
+    // 夢の数に応じてクラスを追加
+    if (dreamCount === 0) {
+        bookshelf.classList.add('bookshelf-empty');
+        console.log('[updateBookshelfDisplay] Applied: bookshelf-empty (dreamCount: 0)');
+    } else if (dreamCount <= 3) {
+        bookshelf.classList.add('bookshelf-small');
+        console.log('[updateBookshelfDisplay] Applied: bookshelf-small (dreamCount:', dreamCount, ')');
+    } else if (dreamCount <= 7) {
+        bookshelf.classList.add('bookshelf-medium');
+        console.log('[updateBookshelfDisplay] Applied: bookshelf-medium (dreamCount:', dreamCount, ')');
+    } else {
+        bookshelf.classList.add('bookshelf-large');
+        console.log('[updateBookshelfDisplay] Applied: bookshelf-large (dreamCount:', dreamCount, ')');
+    }
+}
+
+// TODO: Rails統合時は以下をAPI呼び出しに置き換え
+// fetch('/api/v1/dreams')
+//     .then(response => response.json())
+//     .then(data => {
+//         const dreamCount = data.dreams.length;
+//         updateBookshelfDisplay(dreamCount);
+//     })
+//     .catch(error => {
+//         console.error('Failed to fetch dreams:', error);
+//         updateBookshelfDisplay(0); // エラー時は空の本棚を表示
+//     });
+
+// ダミーデータで動作確認（prototype段階）
+// library.htmlが読み込まれた時にのみ実行
+if (document.getElementById('bookshelf')) {
+    const dummyDreamCount = 4; // 仮の夢の数（0, 1-3, 4-7, 8以上で本棚画像が変わる）
+    updateBookshelfDisplay(dummyDreamCount);
+}
+
+/**
+ * 縮小版巻物の表示をLocalStorageのメモ有無に応じて更新
+ */
+function updateScrollMiniDisplay() {
+    const deskScrollMini = document.getElementById('desk-scroll-mini');
+    if (!deskScrollMini) {
+        console.warn('[updateScrollMiniDisplay] desk-scroll-mini element not found');
+        return;
+    }
+
+    // LocalStorageからメモを取得
+    const scratchpadData = loadFromLocalStorage('dream_diary_scratchpad');
+    const hasMemo = scratchpadData && scratchpadData.content && scratchpadData.content.trim() !== '';
+
+    // 既存のクラスを削除
+    deskScrollMini.classList.remove('has-memo', 'no-memo');
+
+    // メモ有無に応じてクラスを追加
+    if (hasMemo) {
+        deskScrollMini.classList.add('has-memo');
+        console.log('[updateScrollMiniDisplay] Applied: has-memo (LocalStorage scratchpad exists)');
+    } else {
+        deskScrollMini.classList.add('no-memo');
+        console.log('[updateScrollMiniDisplay] Applied: no-memo (LocalStorage scratchpad empty)');
+    }
+}
+
+// library.htmlが読み込まれた時にのみ実行
+if (document.getElementById('desk-scroll-mini')) {
+    updateScrollMiniDisplay();
+}

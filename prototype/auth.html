@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="ja" class="after-door">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -31,22 +31,15 @@
             position: absolute;
             top: 20px;
             left: 20px;
-            width: 40px;
-            height: 40px;
-            background-color: var(--color-ink);
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: var(--color-paper);
-            font-size: 20px;
-            font-weight: bold;
+            width: 60px;
+            height: 60px;
+            background-image: url('assets/icon_back.png'); /* Asset: 操作アイコン/戻る */
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
             cursor: pointer;
             z-index: 15;
             filter: drop-shadow(0px 2px 2px rgba(0,0,0,0.4));
-        }
-        .back-to-index-button::before {
-            content: "❮"; /* Unicode left arrow */
         }
         .back-to-index-button:hover {
             filter: brightness(1.2) drop-shadow(0px 2px 2px rgba(0,0,0,0.4));
@@ -178,6 +171,7 @@
         }
 
         .auth-card input[type="text"],
+        .auth-card input[type="email"],
         .auth-card input[type="password"] {
             width: 90%;
             box-sizing: border-box; /* パディングとボーダーを含む */
@@ -191,6 +185,7 @@
             font-size: clamp(11px, 3vh, 15px); /* 16pxから15pxに縮小 */
             color: var(--color-ink);
             outline: none;
+            cursor: text; /* テキスト入力用のカーソル */
         }
 
         .auth-card input::placeholder {
@@ -263,7 +258,7 @@
                 <div class="auth-card auth-card-login" id="login-card">
                     <h2>継続</h2>
                     <form id="login-form">
-                        <input type="text" placeholder="ユーザー名" required>
+                        <input type="text" placeholder="ユーザー名 または メールアドレス" required>
                         <input type="password" placeholder="パスワード" required>
                         <div class="error-message" id="login-error"></div>
                         <button type="submit">入館</button>
@@ -273,6 +268,7 @@
                     <h2>新規</h2>
                     <form id="signup-form">
                         <input type="text" placeholder="新しいユーザー名" required>
+                        <input type="email" placeholder="メールアドレス" required>
                         <input type="password" placeholder="パスワード" required>
                         <input type="password" placeholder="パスワード（確認）" required>
                         <div class="error-message" id="signup-error"></div>
