@@ -27,7 +27,7 @@ SOLID原則、Rails Way、およびTDD（テスト駆動開発）に従い、保
 ## 各機能の実装（繰り返し）
 
 1. `roadmap.md` で次のタスクと参照先を確認
-2. `screens/*.md` で決定事項を確認
+2. 仕様書（`screens/*.md` or `features/*.md` or `stories/*.md`）で決定事項を確認
 3. コードベースを分析（SerenaMCP）
 4. 複雑な機能時は feature-dev プラグインを活用
    - `code-explorer`: 既存コードの深い分析
@@ -46,22 +46,20 @@ SOLID原則、Rails Way、およびTDD（テスト駆動開発）に従い、保
 
 ## 仕様書構成
 
+**Phase 0 で選択した構造に従う**（architecture.md に記録）。
+
+パターン例:
 ```
 docs/specs/
 ├── architecture.md      # 技術スタック・設計判断
 ├── roadmap.md           # タスク一覧・進捗管理
 ├── data.md              # ER図・モデル定義
-├── animations.md        # 全画面共通の演出仕様
-└── screens/
-    ├── top.md           # トップ画面
-    ├── auth.md          # 認証画面
-    ├── library.md       # 書斎（メインハブ）
-    ├── list.md          # 一覧画面（本棚）
-    ├── create.md        # 作成画面
-    ├── detail.md        # 詳細画面
-    ├── edit.md          # 編集画面
-    ├── search.md        # 検索画面（索引箱）
-    └── overflow.md      # 夢の氾濫（特殊演出）
+├── animations.md        # 演出仕様（必要な場合）
+└── screens/             # パターンA: UI中心
+    または
+└── features/            # パターンB: 機能中心
+    または
+└── stories/             # パターンC: ストーリー中心
 ```
 
 ## 仕様書の原則
@@ -71,7 +69,7 @@ docs/specs/
 | 技術スタック選定理由 | タイムライン (Day 1, Day 2...) |
 | 設計判断 | コマンド例 (rails g model...) |
 | データ構造 | コード例 (Dockerfile等) |
-| API設計 | 詳細な実装手順 |
+| データ送受信設計 | 詳細な実装手順 |
 | ビジネスルール | |
 
 → **コードがSource of Truth**。実装詳細はコードを見る。
@@ -87,10 +85,10 @@ docs/specs/
 
 ## フロントエンドのテスト方針
 
-- **バックエンド（API）**: TDD（RSpec）
+- **バックエンド**: TDD（RSpec）
 - **フロントエンド**: 手動確認 + System Spec（E2E）
 
-**System Spec（Capybara）で確認**: 画面遷移、API連携、主要ユーザーフロー
+**System Spec（Capybara）で確認**: 画面遷移、データ送受信、主要ユーザーフロー
 **手動確認**: 演出・アニメーション、レスポンシブ、ブラウザ互換性
 
 # Rules
