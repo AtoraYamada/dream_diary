@@ -19,6 +19,30 @@
 | **コンテナ** | Docker Compose | - |
 | **読み仮名生成** | kuromoji.js | 0.1+ |
 
+## 仕様書構造
+
+このプロジェクトは**画面別（screens/）**で仕様を管理。
+
+```
+docs/specs/
+├── architecture.md      # 本ファイル
+├── roadmap.md           # タスク一覧・進捗管理
+├── data.md              # データ定義
+├── animations.md        # 演出仕様
+└── screens/             # 画面別仕様書
+    ├── top.md
+    ├── auth.md
+    ├── library.md
+    ├── list.md
+    ├── create.md
+    ├── detail.md
+    ├── edit.md
+    ├── search.md
+    └── overflow.md
+```
+
+**選択理由**: UI中心のアプリケーションで、各画面が明確に分かれており、画面単位での実装が効率的なため。
+
 ## アーキテクチャ構成
 
 ```
