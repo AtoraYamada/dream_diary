@@ -372,7 +372,9 @@ UIの動作確認が必要な場合、プロトタイプを作成する。
 6. ユーザー承認
 7. TDD実装（Red → Green → Refactor）
 8. レビュー（バックエンド: rails-reviewer / フロントエンド: code-reviewer）
-9. `roadmap.md` の状態を更新
+9. 進捗状況を更新
+   - `roadmap.md`: タスクの状態を更新（⬜ → ✅）
+   - 仕様書（`screens/*.md` or `features/*.md` or `stories/*.md`）: 実装状況チェックリストを更新（[ ] → [x]）
 
 ### feature-dev プラグインの活用
 

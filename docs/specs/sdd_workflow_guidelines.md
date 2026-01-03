@@ -45,7 +45,8 @@ docs/specs/
     ├── detail.md        # 詳細画面
     ├── edit.md          # 編集画面
     ├── search.md        # 検索画面（索引箱）
-    └── overflow.md      # 夢の氾濫（特殊演出）
+    ├── overflow.md      # 夢の氾濫（特殊演出）
+    └── logout.md        # ログアウト（目覚めの儀式）
 ```
 
 ## ロードマップの構造
@@ -335,7 +336,9 @@ UIの動作確認が必要な場合、プロトタイプを作成する。
 6. ユーザー承認
 7. TDD実装（Red → Green → Refactor）
 8. レビュー（バックエンド: rails-reviewer / フロントエンド: code-reviewer）
-9. `roadmap.md` の状態を更新
+9. 進捗状況を更新
+   - `roadmap.md`: タスクの状態を更新（⬜ → ✅）
+   - `screens/*.md`: 実装状況チェックリストを更新（[ ] → [x]）
 
 ### feature-dev プラグインの活用
 
