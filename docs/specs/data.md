@@ -97,7 +97,7 @@ erDiagram
 | title | string(15) | NOT NULL | 夢のタイトル |
 | content | text | NOT NULL | 夢の本文 |
 | emotion_color | integer | NOT NULL | 感情彩色（enum） |
-| lucid_dream_flag | boolean | default: false | 明晰夢フラグ |
+| lucid_dream_flag | boolean | default: false | 明晰夢フラグ（将来拡張：データ構造のみ確保、UI未実装） |
 | dreamed_at | datetime | NOT NULL | 夢を見た日 |
 
 **バリデーション**:
@@ -203,12 +203,51 @@ DreamとTagの多対多関係（中間テーブル）。
 
 トップページで入力した一時メモ。夢から覚めた直後に素早くメモし、後で正式な夢日記として保存するための機能。
 
+#### トップページ時点
+
 | キー | 値 | 説明 |
 |------|-----|------|
-| `scratchpad_memo` | string | 殴り書きメモの内容 |
+| `scratch_memo` | JSON文字列 | 殴り書きメモの内容 |
+
+**構造**:
+```json
+{
+  "content": "入力されたテキスト",
+  "timestamp": 1234567890
+}
+```
+
+#### 作成画面で拡張後
+
+作成画面を開く際、トップページからの値を継承して以下の構造に拡張されます。
+
+**構造**:
+```json
+{
+  "title": "タイトル",
+  "dreamed_at": "2024-01-01",
+  "content": "本文",
+  "emotion_color": "peace",
+  "tags": [
+    {"name": "太郎", "yomi": "たろう", "category": "person"},
+    {"name": "公園", "yomi": "こうえん", "category": "place"}
+  ],
+  "lucid_dream_flag": false,
+  "timestamp": 1234567890
+}
+```
+
+#### 編集画面（別キー）
+
+| キー | 値 | 説明 |
+|------|-----|------|
+| `draft_dream_edit_{id}` | JSON文字列 | 編集中の夢日記の下書き |
+
+**構造**: 作成画面の拡張後と同様
 
 **ライフサイクル**:
-- トップページで入力時: 自動保存
-- ログイン/サインアップ時: 保持したまま遷移
-- 新規作成画面遷移時: 殴り書きメモがあれば本文に自動入力
-- 夢日記保存成功時: LocalStorageから削除
+- **トップページ**: 入力時に自動保存
+- **ログイン/サインアップ時**: 保持したまま遷移
+- **作成画面遷移時**: 殴り書きメモがあれば本文に自動入力（タイムスタンプ比較）
+- **夢日記保存成功時**: LocalStorageから削除
+- **編集画面**: `draft_dream_edit_{id}` として別キーで保存（保存成功時または閉じる時に削除）
