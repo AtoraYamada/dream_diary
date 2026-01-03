@@ -22,10 +22,10 @@
     --color-pin-head: #e57373; /* Asset: ピンの頭の色 (例: タグのピン) */
 
     /* Emotion Colors (from 5.6.4) */
-    --color-peace: #78909c;   /* 安らぎの感情色 */
-    --color-chaos: #7e57c2;   /* 混沌の感情色 */
-    --color-fear: #424242;    /* 恐怖の感情色 */
-    --color-elation: #d84315; /* 高揚の感情色 */
+    --color-peace: #a0a9a6;   /* 平穏の感情色 */
+    --color-chaos: #b07a70;   /* 混沌の感情色 */
+    --color-fear: #838387;    /* 恐怖の感情色 */
+    --color-elation: #ca9e63; /* 高揚の感情色 */
 
     /* Viewport size (from 5.5) */
     --viewport-width: 320px; /* 4:3アスペクト比の基準幅 */

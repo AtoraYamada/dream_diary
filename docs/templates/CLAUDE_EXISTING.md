@@ -5,12 +5,24 @@ SOLID原則、Rails Way、およびTDD（テスト駆動開発）に従い、保
 
 # Workflow
 
-詳細は `docs/specs/sdd_workflow_guidelines.md` を参照。
+詳細は `docs/specs/sdd_existing_project_guidelines.md` を参照。
 
-## 実装フロー（繰り返し）
+## 既存プロジェクト参入時フロー
+
+既存プロジェクトに参入する場合のフロー。
+
+0. `sdd_workflow_guidelines.md` を読み込む（基本方針の確認）
+1. SerenaMCPオンボーディング実施
+2. 既存ドキュメントの確認
+3. code-explorer でコードベース分析
+4. 仕様書の整備（なければ作成）
+5. ユーザー承認。**承認なしに実装フェーズへ進んではいけません。**
+6. 通常のワークフローに移行
+
+## 各機能の実装（繰り返し）
 
 1. `roadmap.md` で次のタスクと参照先を確認
-2. `screens/*.md` で決定事項を確認
+2. 仕様書（`screens/*.md` or `features/*.md` or `stories/*.md`）で仕様を確認
 3. コードベースを分析（SerenaMCP）
 4. 複雑な機能時は feature-dev プラグインを活用
    - `code-explorer`: 既存コードの深い分析
@@ -27,27 +39,22 @@ SOLID原則、Rails Way、およびTDD（テスト駆動開発）に従い、保
     - **❌ REJECT判定**: 必ず修正が必要。ステップ7から再実行。
 10. 進捗状況を更新
     - `roadmap.md`: タスクの状態を更新（⬜ → ✅）
-    - `screens/*.md`: 実装状況チェックリストを更新（[ ] → [x]）
+    - 仕様書（`screens/*.md` or `features/*.md` or `stories/*.md`）: 実装状況チェックリストを更新（[ ] → [x]）
 
 ## 仕様書構成
 
+**既存プロジェクトの構造に従う**（architecture.md に記録）。
+
+パターン例:
 ```
 docs/specs/
 ├── architecture.md      # 技術スタック・設計判断
 ├── roadmap.md           # タスク一覧・進捗管理
-├── data.md              # ER図・モデル定義
-├── animations.md        # 全画面共通の演出仕様
-└── screens/
-    ├── top.md           # トップ画面
-    ├── auth.md          # 認証画面
-    ├── library.md       # 書斎（メインハブ）
-    ├── list.md          # 一覧画面（本棚）
-    ├── create.md        # 作成画面
-    ├── detail.md        # 詳細画面
-    ├── edit.md          # 編集画面
-    ├── search.md        # 検索画面（索引箱）
-    ├── overflow.md      # 夢の氾濫（特殊演出）
-    └── logout.md        # ログアウト（目覚めの儀式）
+└── screens/             # UI中心の場合
+    または
+└── features/            # 機能中心の場合
+    または
+└── stories/             # ストーリー中心の場合
 ```
 
 ## 仕様書の原則
@@ -57,7 +64,7 @@ docs/specs/
 | 技術スタック選定理由 | タイムライン (Day 1, Day 2...) |
 | 設計判断 | コマンド例 (rails g model...) |
 | データ構造 | コード例 (Dockerfile等) |
-| API設計 | 詳細な実装手順 |
+| データ送受信設計 | 詳細な実装手順 |
 | ビジネスルール | |
 
 → **コードがSource of Truth**。実装詳細はコードを見る。
@@ -73,10 +80,10 @@ docs/specs/
 
 ## フロントエンドのテスト方針
 
-- **バックエンド（API）**: TDD（RSpec）
+- **バックエンド**: TDD（RSpec）
 - **フロントエンド**: 手動確認 + System Spec（E2E）
 
-**System Spec（Capybara）で確認**: 画面遷移、API連携、主要ユーザーフロー
+**System Spec（Capybara）で確認**: 画面遷移、データ送受信、主要ユーザーフロー
 **手動確認**: 演出・アニメーション、レスポンシブ、ブラウザ互換性
 
 # Rules
@@ -101,7 +108,7 @@ docs/specs/
 | `search_for_pattern` | 正規表現で任意パターン検索（コード・Markdown等） | 特定パターンを探す、仕様書セクションヘッダーを検索するとき |
 
 ### 禁止事項
-- ❌ `Read`ツールでファイル全体を読み込む
+- ❌ コードファイルを`Read`ツールで全体読み込み
 - ❌ 目的なくファイル内容を取得する
 - ❌ SerenaMCPで取得可能な情報を他の方法で取得する
 - ❌ `search_for_pattern` で行頭アンカー `^` を使用する（MULTILINE未対応のため常に失敗する）

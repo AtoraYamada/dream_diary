@@ -246,10 +246,10 @@ document.documentElement.classList.add('after-door');
 :root {
   --font-serif: serif;                    /* 現実（トップページ） */
   --font-pixel: 'DotGothic16', monospace; /* 夢の領域 */
-  --color-peace: #d4c5b9;
-  --color-chaos: #8b4c4c;
-  --color-fear: #4a5568;
-  --color-elation: #c9a854;
+  --color-peace: #a0a9a6;
+  --color-chaos: #b07a70;
+  --color-fear: #838387;
+  --color-elation: #ca9e63;
 }
 ```
 

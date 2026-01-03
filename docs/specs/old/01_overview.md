@@ -265,10 +265,10 @@ Dream Diary では、**現実（トップページ）** と **夢の領域（扉
   --font-pixel: 'DotGothic16', monospace; /* 夢の領域 */
 
   /* 感情彩色（emotion_color） */
-  --color-peace: #d4c5b9;   /* 0: 穏やか（ベージュ） */
-  --color-chaos: #8b4c4c;   /* 1: 混沌（深紅） */
-  --color-fear: #4a5568;    /* 2: 恐怖（紺） */
-  --color-elation: #c9a854;   /* 3: 歓喜（金） */
+  --color-peace: #a0a9a6;   /* 0: 穏やか（ベージュ） */
+  --color-chaos: #b07a70;   /* 1: 混沌（深紅） */
+  --color-fear: #838387;    /* 2: 恐怖（紺） */
+  --color-elation: #ca9e63;   /* 3: 歓喜（金） */
 }
 
 /* トップページ専用 */
@@ -504,7 +504,7 @@ Rails.application.config.assets.paths << Rails.root.join('app', 'assets', 'image
 ## 感情彩色（emotion_color）の実装方針
 
 感情彩色は以下の4色に対応します：
-- `0`: peace（安らぎ・平穏）
+- `0`: peace（平穏）
 - `1`: chaos（混沌）
 - `2`: fear（恐怖）
 - `3`: elation（高揚）

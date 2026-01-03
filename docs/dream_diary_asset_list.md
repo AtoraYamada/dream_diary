@@ -8,7 +8,7 @@
 | 森の中の古びた扉 | トップページ（現実）用背景。ズームに耐える高解像度。 | bg_top_forest_door.png | 全画面を覆うため透過不要。 |
 | 入館手続きの背景 | シュールで幾何学的な、奥に続く廊下のシルエット。ログイン・サインアップ画面用。 | bg_auth_corridor.png | 全画面を覆うため透過不要。 |
 | 静寂の書斎（机あり） | 机・窓・鏡・壁が描き込まれたベース画像。本棚と索引箱の場所のみ空けておく。 | bg_library_desk.png | 全画面を覆うため透過不要。 |
-| **一覧・詳細用背景（壁アップ）** | 本棚が置かれている場所の「壁面」をアップにした画像。目録（一覧）と断片（詳細）の共通ベース背景として使用。 | bg_library_wall_up.png | 全画面を覆うため透過不要。 |
+| **一覧用背景（壁アップ）** | 本棚が置かれている場所の「壁面」をアップにした画像。目録（一覧）と断片（詳細）の共通ベース背景として使用。 | bg_library_wall_up.png | 全画面を覆うため透過不要。 |
 | 暗い石壁 | 4:3画面の外側の余白（額縁）用。世界観を補強するベース背景。 | bg_stone_wall_dark.png | 全画面を覆うため透過不要。 |
 
 ### 1.2. 形状透過のみ必要な画像素材
@@ -37,8 +37,7 @@ JavaScriptで夢の数に応じて画像ファイルを動的に切り替えま�
 
 | アセット名 | 説明 | ファイル名 | 備考 |
 |---|---|---|---|
-| 巻物：上端/下端 | 巻き取り部分。入力欄の上下に **固定** で配置。中間部はHTML。スクロール時も位置不変。 | 
-.png | 不規則な形状を背景と合成するため。 |
+| 巻物：上端/下端 | 巻き取り部分。入力欄の上下に **固定** で配置。中間部はHTML。スクロール時も位置不変。 | img_scroll_top_bottom.png | 不規則な形状を背景と合成するため。 |
 | 縮小版巻物：白紙 | 縮小版巻物。LocalStorage メモ無の場合の画像。 | img_scroll_mini_blank.png | LocalStorage メモ有無の視認するため。library.htmlのクリッカブル要素（新規作成へ移行）として使うため。 |
 | 縮小版巻物：書きかけ | 巻き取り部分。LocalStorage メモ有の場合の画像。 | img_scroll_mini_draft.png | LocalStorage メモ有無の視認するため。library.htmlのクリッカブル要素（新規作成へ移行）として使うため。 |
 
@@ -112,14 +111,14 @@ JavaScriptで夢の数に応じて画像ファイルを動的に切り替えま�
 ### 1.3. 感情彩色対応アセット（4色版）
 
 感情彩色（peace/chaos/fear/elation）に対応した画像群です。
-JavaScriptで色別の画像ファイルを動的に選択して表示します（`getEmotionImagePath()` 関数参照）。
+JavaScriptで色別の画像ファイルを動的に選択して表示します。
 
 #### 1.3.1 巻物（作成UI）
 感情彩色に対応したインク瓶を用意します。
 
 | 感情彩色 | ファイル名 |
 |---|---|
-| 安らぎ（平穏） | img_ink_bottle_peace.png |
+| 平穏 | img_ink_bottle_peace.png |
 | 混沌 | img_ink_bottle_chaos.png |
 | 恐怖 | img_ink_bottle_fear.png |
 | 高揚 | img_ink_bottle_elation.png |
@@ -134,7 +133,7 @@ JavaScriptで色別の画像ファイルを動的に選択して表示します�
 **背表紙（本棚表示用）**:
 | 感情彩色 | ファイル名 |
 |---|---|
-| 安らぎ（平穏） | img_book_spine_peace.png |
+| 平穏 | img_book_spine_peace.png |
 | 混沌 | img_book_spine_chaos.png |
 | 恐怖 | img_book_spine_fear.png |
 | 高揚 | img_book_spine_elation.png |
@@ -142,7 +141,7 @@ JavaScriptで色別の画像ファイルを動的に選択して表示します�
 **本：正面（閉）**:
 | 感情彩色 | ファイル名 |
 |---|---|
-| 安らぎ（平穏） | img_book_closed_peace.png |
+| 平穏 | img_book_closed_peace.png |
 | 混沌 | img_book_closed_chaos.png |
 | 恐怖 | img_book_closed_fear.png |
 | 高揚 | img_book_closed_elation.png |
@@ -150,7 +149,7 @@ JavaScriptで色別の画像ファイルを動的に選択して表示します�
 **本：半分開きかけ**:
 | 感情彩色 | ファイル名 |
 |---|---|
-| 安らぎ（平穏） | img_book_half_open_peace.png |
+| 平穏 | img_book_half_open_peace.png |
 | 混沌 | img_book_half_open_chaos.png |
 | 恐怖 | img_book_half_open_fear.png |
 | 高揚 | img_book_half_open_elation.png |
@@ -158,7 +157,7 @@ JavaScriptで色別の画像ファイルを動的に選択して表示します�
 **本：見開きフレーム**:
 | 感情彩色 | ファイル名 |
 |---|---|
-| 安らぎ（平穏） | img_book_open_frame_peace.png |
+| 平穏 | img_book_open_frame_peace.png |
 | 混沌 | img_book_open_frame_chaos.png |
 | 恐怖 | img_book_open_frame_fear.png |
 | 高揚 | img_book_open_frame_elation.png |
@@ -197,7 +196,7 @@ JavaScriptで emotion_color に応じて画像ファイルを動的に切り替�
 ### 2.5. 夢を編む（作成・編集）
 | アセット名 | 説明 | ファイル名 | 備考 |
 |---|---|---|---|
-| インクの滴り音 | [彩色] 感情選択時、栞が光るのと同期。「ピチャン」という透明感のある音。 | sfx_ink_drip.wav | |
+| インクの滴り音 | [彩色] 感情選択時。「ピチャン」という透明感のある音。 | sfx_ink_drip.wav | |
 | 羽ペンの筆記音 | [入力] テキストエリアへのFocus中（ループ）。「カリカリ」という音。 | sfx_quill_write.wav | |
 | 巻物を広げる音 | [作成開始] 巻物UIが表示される際の、乾いた紙が広がる音。 | sfx_scroll_unfurl.wav | |
 | 巻物の収束音 | [定着] 銀の栞クリック後、巻物がシュルシュルと巻き取られる摩擦音。 | sfx_scroll_roll_up.wav | |
