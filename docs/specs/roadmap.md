@@ -34,6 +34,7 @@
 | ✅ | Dream モデル | `data.md` |
 | ✅ | Tag モデル | `data.md` |
 | ✅ | DreamTag モデル | `data.md` |
+| ⬜ | チュートリアル本自動生成（User作成時） | `screens/list.md` |
 
 ## Phase 3: API
 
@@ -45,7 +46,9 @@
 | ✅ | Dreams 更新 API | `screens/edit.md` |
 | ✅ | Dreams 削除 API | `screens/detail.md` |
 | ✅ | Dreams 検索 API | `screens/search.md` |
+| ⬜ | Dreams 検索: スペース区切りAND検索 | `screens/search.md` |
 | ✅ | Dreams 氾濫 API | `screens/overflow.md` |
+| ⬜ | Dreams 氾濫: タグ頻度分析 | `screens/overflow.md` |
 | ✅ | Tags 一覧 API | `screens/search.md` |
 | ✅ | Tags サジェスト API | `screens/create.md` |
 | ✅ | Tags 削除 API | `screens/search.md` |
@@ -69,6 +72,7 @@ UIとバックエンドとの繋ぎこみ。
 | 状態 | タスク | 仕様書 |
 |------|--------|--------|
 | ⬜ | Devise JSON API化 | `screens/auth.md` |
+| ⬜ | login（email OR username）対応 | `screens/auth.md` |
 | ⬜ | 認証UI連携 | `screens/auth.md` |
 | ⬜ | LocalStorage連携 | `screens/top.md`, `screens/create.md` |
 | ⬜ | 書斎画面連携 | `screens/library.md` |
@@ -82,6 +86,7 @@ UIとバックエンドとの繋ぎこみ。
 | ⬜ | タグ削除UI連携 | `screens/search.md` |
 | ⬜ | 検索機能連携 | `screens/search.md` |
 | ⬜ | 夢の氾濫連携 | `screens/overflow.md` |
+| ⬜ | ログアウト機能連携 | `screens/logout.md` |
 
 ## Phase 6: 追加演出
 
@@ -98,6 +103,7 @@ UIとバックエンドとの繋ぎこみ。
 | ⬜ | 夢の氾濫演出 | `animations.md` |
 | ⬜ | 認証エラー演出 (砂崩れ) | `animations.md` |
 | ⬜ | 背表紙ホバー演出 | `animations.md` |
+| ⬜ | ログアウト演出 (目覚めの儀式) | `animations.md` |
 
 ## Phase 7: 仕上げ
 

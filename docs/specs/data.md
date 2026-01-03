@@ -85,6 +85,13 @@ erDiagram
 - `has_many :dreams, dependent: :destroy`
 - `has_many :tags, dependent: :destroy`
 
+**コールバック**:
+- `after_create`: チュートリアル本（先代の主の手記）を自動生成
+  - タイトル: 「先代の主の手記」
+  - 内容: 使い方ガイド（仕様は `screens/list.md` 参照）
+  - 感情彩色: peace
+  - dreamed_at: ユーザー作成日時
+
 ---
 
 ### Dream
