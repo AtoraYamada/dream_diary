@@ -522,6 +522,78 @@ RSpec.describe 'Api::V1::Dreams', type: :request do
         end
       end
 
+      context 'タグ頻度分析機能' do
+        let!(:frequent_tag) { create(:tag, user: user, name: '頻出タグ') }
+
+        before do
+          base_time = Time.current
+
+          # 直近10回分の夢（frequent_tagを2回使用 → 多用タグとして認定）
+          10.times do |i|
+            dream = create(:dream, user: user, dreamed_at: base_time - i.days, content: "直近頻出タグ夢#{i}。")
+            dream.tags << frequent_tag if [0, 5].include?(i)
+          end
+
+          # frequent_tagを持つ古い夢を5件作成（これらも選択対象）
+          5.times do |i|
+            create(:dream, user: user, dreamed_at: base_time - (10 + i).days, content: "古い頻出タグ夢#{i}。", tags: [frequent_tag])
+          end
+
+          # frequent_tagを持たない夢を10件作成（これらは選択されない）
+          10.times do |i|
+            create(:dream, user: user, dreamed_at: base_time - (20 + i).days, content: "無関係の夢#{i}。")
+          end
+        end
+
+        it '多用タグを持つ全期間の夢が選択され、持たない夢は選択されないこと' do
+          # 複数回実行して統計的に検証
+          results = 10.times.map do
+            get '/api/v1/dreams/overflow'
+            response.parsed_body['fragments'].join
+          end
+
+          # 「直近頻出タグ夢」が含まれること（直近10件のfrequent_tag持ち夢も選ばれる）
+          expect(results.any? { |r| r.include?('直近頻出タグ夢') }).to be(true)
+
+          # 「古い頻出タグ夢」が含まれること（直近10件以外のfrequent_tag持ち夢も選ばれる）
+          expect(results.any? { |r| r.include?('古い頻出タグ夢') }).to be(true)
+
+          # 「無関係の夢」は含まれないこと（多用タグを持たない夢は選ばれない）
+          expect(results.all? { |r| !r.include?('無関係の夢') }).to be(true)
+        end
+      end
+
+      context '多用タグが存在しない場合' do
+        before do
+          base_time = Time.current
+
+          # 直近10回分の夢（各夢に異なるタグ、各タグは1回のみ使用）
+          10.times do |i|
+            dream = create(:dream, user: user, dreamed_at: base_time - i.days, content: "夢#{i}の内容。")
+            tag = create(:tag, user: user, name: "タグ#{i}")
+            dream.tags << tag
+          end
+        end
+
+        it '全ての夢からランダムに選択されること' do
+          get '/api/v1/dreams/overflow'
+
+          expect(response).to have_http_status(:ok)
+          json = response.parsed_body
+          expect(json['fragments']).to be_an(Array)
+          expect(json['fragments'].size).to be_between(5, 8)
+
+          # 複数回実行して、様々な夢が選ばれることを確認（ランダム性の検証）
+          results = 5.times.map do
+            get '/api/v1/dreams/overflow'
+            response.parsed_body['fragments']
+          end
+
+          # 少なくとも2つの異なる結果が得られること（完全にランダムであることの検証）
+          expect(results.uniq.size).to be >= 2
+        end
+      end
+
       context '夢が少ない場合' do
         let!(:dreams) { create_list(:dream, 2, user: user, content: '短い文章。') }
 

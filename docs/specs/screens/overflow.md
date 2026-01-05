@@ -137,7 +137,7 @@
 
 - [x] GET /api/v1/dreams/overflow（Dreams#overflow）
 - [x] 氾濫テキスト生成サービス（Dreams::OverflowService）
-- [ ] タグ頻度分析
+- [x] タグ頻度分析（Dreams::TagFrequencyAnalyzer）
 - [x] プリセット文章管理
 
 ### フロントエンド
