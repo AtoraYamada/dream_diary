@@ -3,6 +3,9 @@ module Api
     class DreamsController < BaseController
       before_action :set_dream, only: [:show, :update, :destroy]
 
+      # 定数定義
+      OVERFLOW_DREAMS_COUNT = 10 # 氾濫で表示する夢の件数
+
       # GET /api/v1/dreams
       def index
         @dreams = current_user.dreams
@@ -58,7 +61,7 @@ module Api
 
       # GET /api/v1/dreams/overflow
       def overflow
-        dreams = current_user.dreams.order(Arel.sql('RANDOM()')).limit(10)
+        dreams = select_dreams_for_overflow
         result = Dreams::OverflowService.call(dreams)
 
         if result.success?
@@ -122,6 +125,21 @@ module Api
 
       def apply_pagination(dreams)
         dreams.recent.page(params[:page]).per(12)
+      end
+
+      # overflow action helpers
+      def select_dreams_for_overflow
+        frequent_tag_ids = Dreams::TagFrequencyAnalyzer.call(current_user)
+
+        base_scope = if frequent_tag_ids.any?
+                       current_user.dreams.joins(:tags).where(tags: { id: frequent_tag_ids })
+                     else
+                       current_user.dreams
+                     end
+
+        # IDを取得してRubyレベルでシャッフル（DB非依存）
+        ids = base_scope.distinct.pluck(:id).shuffle.take(OVERFLOW_DREAMS_COUNT)
+        Dream.where(id: ids)
       end
 
       # error rendering helpers
