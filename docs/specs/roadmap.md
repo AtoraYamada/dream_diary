@@ -60,8 +60,9 @@
 
 | 状態 | タスク | 仕様書 |
 |------|--------|--------|
-| ⬜ | 静的ファイル移行 (HTML) | `architecture.md` |
-| ⬜ | Asset Pipeline設定 | `architecture.md` |
+| ✅ | 静的ファイル移行 (HTML) | `architecture.md` |
+| ✅ | Asset Pipeline設定 | `architecture.md` |
+| ⬜ | ERB要素整理・パーシャル化 | `architecture.md` |
 | ⬜ | CSS整理・分割 | `architecture.md` |
 | ⬜ | JS整理・分割 | `architecture.md` |
 
