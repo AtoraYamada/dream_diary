@@ -46,7 +46,7 @@
 | ✅ | Dreams 更新 API | `screens/edit.md` |
 | ✅ | Dreams 削除 API | `screens/detail.md` |
 | ✅ | Dreams 検索 API | `screens/search.md` |
-| ⬜ | Dreams 検索: スペース区切りAND検索 | `screens/search.md` |
+| ✅ | Dreams 検索: スペース区切りAND検索 | `screens/search.md` |
 | ✅ | Dreams 氾濫 API | `screens/overflow.md` |
 | ⬜ | Dreams 氾濫: タグ頻度分析 | `screens/overflow.md` |
 | ✅ | Tags 一覧 API | `screens/search.md` |

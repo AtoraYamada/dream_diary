@@ -276,6 +276,97 @@ RSpec.describe Dream, type: :model do
       it 'キーワードがnilの場合は全件返す' do
         expect(described_class.search_by_keyword(nil)).to include(mansion_dream, forest_dream, library_dream)
       end
+
+      context 'スペース区切りAND検索' do
+        it '2つのキーワードでAND検索できる（両方titleに含まれる）' do
+          result = described_class.search_by_keyword('古 洋館')
+          expect(result).to include(mansion_dream)
+          expect(result).not_to include(forest_dream, library_dream)
+        end
+
+        it '2つのキーワードでAND検索できる（両方contentに含まれる）' do
+          result = described_class.search_by_keyword('古 本')
+          expect(result).to include(library_dream)
+          expect(result).not_to include(mansion_dream, forest_dream)
+        end
+
+        it '2つのキーワードでAND検索できる（titleとcontentにまたがる）' do
+          result = described_class.search_by_keyword('洋館 地下室')
+          expect(result).to include(mansion_dream)
+          expect(result).not_to include(forest_dream, library_dream)
+        end
+
+        it '3つのキーワードでAND検索できる' do
+          result = described_class.search_by_keyword('古 洋館 地下室')
+          expect(result).to include(mansion_dream)
+          expect(result).not_to include(forest_dream, library_dream)
+        end
+
+        it 'いずれかのキーワードがマッチしない場合は結果が空' do
+          result = described_class.search_by_keyword('古 森')
+          expect(result).to be_empty
+        end
+
+        it '連続する空白を正しく処理できる' do
+          result = described_class.search_by_keyword('古  洋館')
+          expect(result).to include(mansion_dream)
+          expect(result).not_to include(forest_dream, library_dream)
+        end
+
+        it '前後の空白を正しく処理できる' do
+          result = described_class.search_by_keyword('  古 洋館  ')
+          expect(result).to include(mansion_dream)
+          expect(result).not_to include(forest_dream, library_dream)
+        end
+
+        it '空白のみの入力の場合は全件返す' do
+          result = described_class.search_by_keyword('   ')
+          expect(result).to include(mansion_dream, forest_dream, library_dream)
+        end
+
+        it '大量のキーワード（5個）でも動作する' do
+          result = described_class.search_by_keyword('古 洋 地 奥 で')
+          expect(result).to include(mansion_dream)
+          expect(result).not_to include(forest_dream, library_dream)
+        end
+
+        it 'マッチするレコードが複数ある場合、両方取得できる' do
+          result = described_class.search_by_keyword('古 館')
+          expect(result).to include(mansion_dream, library_dream)
+          expect(result).not_to include(forest_dream)
+        end
+      end
+
+      context '特殊文字のエスケープ' do
+        let!(:percent_dream) { create(:dream, user: user, title: '100%の夢', content: '完璧') }
+        let!(:underscore_dream) { create(:dream, user: user, title: 'test_夢', content: '実験') }
+
+        it '%を含むキーワードを検索できる' do
+          result = described_class.search_by_keyword('100%')
+          expect(result).to include(percent_dream)
+          expect(result).not_to include(mansion_dream, forest_dream, library_dream, underscore_dream)
+        end
+
+        it '_を含むキーワードを検索できる' do
+          result = described_class.search_by_keyword('test_')
+          expect(result).to include(underscore_dream)
+          expect(result).not_to include(mansion_dream, forest_dream, library_dream, percent_dream)
+        end
+
+        it '%を含むAND検索ができる' do
+          result = described_class.search_by_keyword('100% 完')
+          expect(result).to include(percent_dream)
+          expect(result).not_to include(mansion_dream, forest_dream, library_dream, underscore_dream)
+        end
+
+        it 'SQLインジェクション攻撃を防げる（シングルクォート）' do
+          # 攻撃例: "' OR '1'='1" を入力した場合
+          result = described_class.search_by_keyword("' OR '1'='1")
+          # 全件取得されないこと（攻撃が成功しないこと）を確認
+          # 攻撃が成功すると、全てのレコードが返される
+          expect(result).not_to include(mansion_dream, forest_dream, library_dream)
+        end
+      end
     end
 
     describe '.tagged_with' do

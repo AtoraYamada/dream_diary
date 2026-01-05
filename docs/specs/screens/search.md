@@ -278,7 +278,7 @@
 
 - [x] GET /api/v1/tags（Tags#index）
 - [x] GET /api/v1/dreams/search（Dreams#search）
-- [ ] キーワードのスペース区切りAND検索（Dream.search_by_keyword）
+- [x] キーワードのスペース区切りAND検索（Dream.search_by_keyword）
 - [x] DELETE /api/v1/tags/:id（Tags#destroy）
 - [x] Jbuilderビュー（index.json.jbuilder, search.json.jbuilder）
 
