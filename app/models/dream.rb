@@ -37,12 +37,23 @@ class Dream < ApplicationRecord
   scope :recent, -> { order(dreamed_at: :desc) }
   scope :by_emotion, ->(color) { where(emotion_color: color) }
 
-  # キーワード検索（title + content）
-  scope :search_by_keyword, lambda { |keyword|
-    return all if keyword.blank?
+  # 複数キーワードによるAND検索をサポート
+  # ユーザーが「森 夜」のように入力した場合、両方のキーワードを含む夢のみを返す
+  # プレースホルダーを使用してSQLインジェクション攻撃を防止
+  scope :search_by_keyword, lambda { |keywords|
+    return all if keywords.blank?
 
-    sanitized = sanitize_sql_like(keyword)
-    where('title LIKE ? OR content LIKE ?', "%#{sanitized}%", "%#{sanitized}%")
+    keyword_list = keywords.strip.split(/\s+/)
+    return all if keyword_list.empty?
+
+    # プレースホルダーで安全にバインド
+    conditions = (['(title LIKE ? OR content LIKE ?)'] * keyword_list.size).join(' AND ')
+    values = keyword_list.flat_map do |keyword|
+      sanitized = sanitize_sql_like(keyword)
+      ["%#{sanitized}%"] * 2
+    end
+
+    where(conditions, *values)
   }
 
   # タグ検索（AND条件）
