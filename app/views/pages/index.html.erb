@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>夢日記帳 - 現実</title>
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= stylesheet_link_tag 'style', media: 'all' %>
+    <%= javascript_importmap_tags %>
+    <script>
+        // チラつき完全防止：URL確認して即座にhtml要素にクラス追加
+        (function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            // 通常のblinkまたはawakeningモード、いずれも暗転状態でスタート
+            if (urlParams.get('blink') === 'open' || urlParams.get('awakening') === 'true') {
+                document.documentElement.classList.add('will-open-eyes');
+            }
+        })();
+    </script>
+    <style>
+        .audio-notice {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            border: 1px solid white;
+            font-family: var(--font-pixel);
+            font-size: 14px;
+            z-index: 200;
+            text-align: center;
+        }
+
+        .mute-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 15px;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: 1px solid white;
+            cursor: pointer;
+            font-family: var(--font-pixel);
+            z-index: 200; /* Higher than door-area to avoid interference */
+        }
+
+        /* Hide audio notice and mute button during awakening mode */
+        html.awakening .audio-notice,
+        html.awakening .mute-button {
+            display: none;
+        }
+
+        /* Page-specific viewport background (トップページ専用背景) */
+        .viewport-container {
+            /* Asset: bg_top_forest_door.png (トップページ背景: 森の扉) */
+            background-image: url('<%= asset_path('bg_top_forest_door.png') %>');
+            background-size: cover;
+            background-position: center;
+        }
+
+        .door-area {
+            /* Clickable area positioned over the door in bg_top_forest_door.png */
+            width: 300px;
+            height: 400px;
+            position: absolute;
+            left: 50%;
+            top: 65%;
+            transform: translate(-50%, -50%);
+            z-index: 100;
+            cursor: pointer;
+        }
+        .door-area:hover {
+            filter: brightness(1.2);
+        }
+
+        .scratchpad-trigger {
+            position: absolute;
+            bottom: 30px;
+            left: 30px;
+            width: 150px;
+            height: 100px;
+            background-image: url('<%= asset_path('img_scratchpad_paper.png') %>');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            z-index: 90; /* Lower than door-area to avoid blocking it */
+            cursor: pointer;
+            transform: rotate(-8deg);
+            transition: opacity 0.3s ease-in-out;
+        }
+        .scratchpad-trigger:hover {
+            filter: brightness(1.1);
+        }
+
+        .scratchpad-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7); /* Darken background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 300; /* Higher than door-area and mute-button */
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease-in-out;
+        }
+        .scratchpad-overlay.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .scratchpad-content {
+            position: relative;
+            background-image: url('<%= asset_path('img_scratchpad_paper.png') %>');
+            background-size: 100% 100%; /* Stretch to fit */
+            padding: 50px 40px 30px 40px; /* top right bottom left */
+            width: 600px; /* Fixed width */
+            height: 500px; /* Fixed height */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            transform: scale(0.95);
+            opacity: 0;
+            transition: transform 0.5s ease-in-out, opacity 0.5s ease-in-out;
+        }
+        .scratchpad-overlay.visible .scratchpad-content {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        .scratchpad-content textarea {
+            width: 90%;
+            flex-grow: 1; /* Fill available space */
+            background: transparent; /* No background, text sits on paper image */
+            border: none;
+            resize: none;
+            font-family: var(--font-serif); /* 素朴な明朝体 */
+            font-size: 22px;
+            font-weight: bold;
+            color: var(--color-ink);
+            outline: none;
+            line-height: 1.6;
+            padding: 10px;
+            overflow-y: auto; /* Allow internal scrolling if content overflows */
+            -ms-overflow-style: none; /* IE and Edge */
+            scrollbar-width: none; /* Firefox */
+        }
+        .scratchpad-content textarea::-webkit-scrollbar {
+            display: none; /* Chrome, Safari and Opera */
+        }
+        .scratchpad-content textarea::placeholder {
+            color: var(--color-ink-light);
+            opacity: 1;
+        }
+
+        .scratchpad-close {
+            margin-top: 15px;
+            background-color: var(--color-ink-light);
+            color: var(--color-paper);
+            border: 1px solid var(--color-brass);
+            padding: 8px 20px;
+            cursor: pointer;
+            font-family: var(--font-serif);
+            font-size: 14px;
+            align-self: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="audio-notice">※ 音声推奨</div>
+    <div class="mute-button" id="mute-button">🔇</div>
+
+    <!-- 4:3 Viewport with outer wall as background (from 5.5) -->
+    <div class="viewport-container">
+        <!-- Asset: bg_top_forest_door.png is applied to body background -->
+        <div class="door-area interactive-object" id="forest-door">
+            <!-- インタラクティブ要素: 森の扉。クリックで認証ページへ遷移。 -->
+        </div>
+
+        <div class="scratchpad-trigger interactive-object" id="scratchpad-trigger">
+            <!-- Asset: 殴り書きの紙片 (img_scratchpad_paper.png) -->
+            <!-- インタラクティブ要素: スクラッチパッドトリガー。クリックでメモ帳を開閉。 -->
+        </div>
+
+        <div class="scratchpad-overlay" id="scratchpad-overlay">
+            <div class="scratchpad-content">
+                <textarea id="scratchpad-textarea" placeholder="夢が消える前に、ここに書き留めておきましょう..."></textarea>
+                <button class="scratchpad-close">閉じる</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        console.log('[index.html] Script loaded - before DOMContentLoaded');
+
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('[index.html] DOM fully loaded');
+
+            const forestDoor = document.getElementById('forest-door');
+            const muteButton = document.getElementById('mute-button');
+            const scratchpadTrigger = document.getElementById('scratchpad-trigger');
+            const scratchpadOverlay = document.getElementById('scratchpad-overlay');
+            const scratchpadTextarea = document.getElementById('scratchpad-textarea');
+            const scratchpadCloseButton = document.querySelector('.scratchpad-close');
+            const viewportContainer = document.querySelector('.viewport-container');
+
+            // Check for awakening mode (logout演出) - prioritize this over normal blink
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('awakening') === 'true') {
+                console.log('[index.html] Awakening mode detected');
+
+                // Apply awakening class immediately (blur will be visible when eyes open)
+                document.documentElement.classList.add('awakening');
+
+                // CSS暗転からオーバーレイ暗転へ切り替え（スムーズな遷移のため）
+                // will-open-eyesを削除する前に、オーバーレイで暗転を維持
+                const initialOverlay = document.createElement('div');
+                initialOverlay.classList.add('blink-overlay', 'closing');
+                document.body.appendChild(initialOverlay);
+
+                // CSS暗転を解除（オーバーレイで暗転は維持されている）
+                document.documentElement.classList.remove('will-open-eyes');
+
+                // Small delay to ensure blur CSS is applied before opening eyes
+                setTimeout(() => {
+                    console.log('[index.html] Opening eyes to show blurred page');
+                    // First blink: open eyes to show blurred page
+                    // 既存のオーバーレイを使って開眼アニメーション
+                    requestAnimationFrame(() => {
+                        initialOverlay.classList.remove('closing');
+                        initialOverlay.classList.add('opening');
+
+                        setTimeout(() => {
+                            initialOverlay.remove();
+                        }, 500);
+                    });
+
+                    // After showing blurred page for 1s, do second blink
+                    setTimeout(() => {
+                        console.log('[index.html] Starting second blink to clear vision');
+                        closeEyes(() => {
+                            // closeEyes callback: remove blur while eyes are closed (during blink)
+                            document.documentElement.classList.remove('awakening');
+                            console.log('[index.html] Blur removed during blink, opening eyes to clear page');
+
+                            // Clear URL parameter
+                            const newUrl = window.location.pathname;
+                            window.history.replaceState({}, document.title, newUrl);
+
+                            // Open eyes after brief pause to show clear page (without blur)
+                            setTimeout(() => {
+                                openEyes();
+                            }, 100);
+                        });
+                    }, 1500); // Wait 1.5s in blurred state (500ms opening + 1000ms hold)
+                }, 50); // Small delay for CSS to apply
+            } else {
+                // Normal page transition - check for opening eyes animation
+                checkAndOpenEyes();
+            }
+
+            console.log('[index.html] forestDoor element:', forestDoor);
+            console.log('[index.html] forestDoor null?', forestDoor === null);
+
+            if (!forestDoor) {
+                console.error('[index.html] ERROR: forestDoor element not found!');
+                return;
+            }
+
+            // Global click debugger
+            document.body.addEventListener('click', (e) => {
+                console.log('[DEBUG] Click detected on:', e.target);
+                console.log('[DEBUG] Click coordinates:', e.clientX, e.clientY);
+                console.log('[DEBUG] Target id:', e.target.id);
+                console.log('[DEBUG] Target class:', e.target.className);
+            });
+
+            let isMuted = false;
+
+            // Mute button functionality (UI要素: ミュートボタン)
+            muteButton.addEventListener('click', () => {
+                isMuted = !isMuted;
+                muteButton.textContent = isMuted ? '🔇' : '🔊';
+                // Implement actual audio muting logic here
+                console.log(`Audio ${isMuted ? 'muted' : 'unmuted'}`);
+                playSound('sfx_ui_toggle.wav'); // Asset: UIトグル音
+            });
+
+            // Door click to transition to auth page
+            forestDoor.addEventListener('click', () => {
+                console.log('[index.html] Door clicked!');
+                // Asset: 重厚な扉の開閉音
+                navigateWithBlink('<%= auth_path %>', 'sfx_door_open_heavy.wav');
+            });
+
+            // Scratchpad trigger
+            scratchpadTrigger.addEventListener('click', () => {
+                scratchpadTrigger.style.opacity = '0'; // Fade out trigger first
+                setTimeout(() => {
+                    scratchpadTrigger.style.display = 'none'; // Hide trigger
+                    scratchpadOverlay.classList.add('visible'); // Then fade in overlay
+                    // Load saved content
+                    const savedContent = loadFromLocalStorage('scratchpad_content');
+                    if (savedContent) {
+                        scratchpadTextarea.value = savedContent;
+                    }
+                    scratchpadTextarea.focus();
+                    playSound('sfx_paper_unfurl.wav'); // Asset: 紙が広がる音 (スクラッチパッド開く時)
+                }, 300); // Wait for trigger fade out to complete
+            });
+
+            // Close scratchpad
+            scratchpadCloseButton.addEventListener('click', () => {
+                scratchpadOverlay.classList.remove('visible'); // Fade out overlay
+                setTimeout(() => {
+                    scratchpadTrigger.style.display = 'block'; // Show trigger
+                    setTimeout(() => scratchpadTrigger.style.opacity = '1', 10); // Fade in trigger
+                }, 300); // Wait for overlay transition to complete
+                playSound('sfx_ui_confirm.wav'); // Asset: 選択・決定音
+            });
+
+            // Save scratchpad content to LocalStorage on input
+            scratchpadTextarea.addEventListener('input', () => {
+                // Enforce 2000 character limit
+                if (scratchpadTextarea.value.length > 2000) {
+                    scratchpadTextarea.value = scratchpadTextarea.value.substring(0, 2000);
+                }
+                saveToLocalStorage('scratchpad_content', scratchpadTextarea.value);
+                playSound('sfx_pencil_write.wav'); // Asset: 鉛筆の筆記音 (入力時)
+            });
+
+            // Cursor change on textarea focus/blur (simulated via log)
+            scratchpadTextarea.addEventListener('focus', () => {
+                console.log('Cursor changed to pencil (simulated)'); // Asset: 鉛筆/チャコールのカーソル
+                // In a real app, you would change the body cursor style here.
+            });
+
+            scratchpadTextarea.addEventListener('blur', () => {
+                console.log('Cursor reverted (simulated)');
+            });
+        });
+    </script>
+</body>
+</html>

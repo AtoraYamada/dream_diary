@@ -28,6 +28,12 @@ Rails.application.routes.draw do
     end
   end
 
+  # Pages routes (静的ページ)
+  root 'pages#index'
+  get 'auth', to: 'pages#auth'
+  get 'library', to: 'pages#library'
+  get 'list', to: 'pages#list'
+
   # Defines the root path route ("/")
   # root "posts#index"
 end

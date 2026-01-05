@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="ja" class="after-door">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>夢の書斎 - 入館手続き</title>
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= stylesheet_link_tag 'style', media: 'all' %>
+    <%= javascript_importmap_tags %>
+    <script>
+        // チラつき完全防止：URL確認して即座にhtml要素にクラス追加
+        (function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('blink') === 'open') {
+                document.documentElement.classList.add('will-open-eyes');
+            }
+        })();
+    </script>
+    <style>
+        /* Page-specific viewport settings (認証ページ専用) */
+        .viewport-container {
+            /* Asset: bg_auth_corridor.png (認証ページ背景: 石造りの廊下) */
+            background-image: url('<%= asset_path("bg_auth_corridor.png") %>');
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Back to index button */
+        .back-to-index-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 60px;
+            height: 60px;
+            background-image: url('<%= asset_path("icon_back.png") %>'); /* Asset: 操作アイコン/戻る */
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            cursor: pointer;
+            z-index: 15;
+            filter: drop-shadow(0px 2px 2px rgba(0,0,0,0.4));
+        }
+        .back-to-index-button:hover {
+            filter: brightness(1.2) drop-shadow(0px 2px 2px rgba(0,0,0,0.4));
+        }
+
+        .auth-container {
+            position: relative;
+            /* レスポンシブ対応: ビューポートの高さに基づいてサイズを決定（1:1のアスペクト比を維持） */
+            /* サイズを大きく: 75vh → 90vh、最大サイズも750px → 900pxに拡大 */
+            width: min(90vh, calc(95vh * 4 / 3 * 0.9)); /* ビューポート高さの90%、またはviewport-container幅の90%の小さい方 */
+            height: min(90vh, calc(95vh * 4 / 3 * 0.9));
+            max-width: 900px; /* 最大サイズを拡大（元の750pxの1.2倍） */
+            max-height: 900px;
+            aspect-ratio: 1 / 1; /* 1:1のアスペクト比を維持 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-image: url('<%= asset_path("img_binder.png") %>');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            box-sizing: border-box;
+            z-index: 2;
+        }
+
+        .auth-card-wrapper {
+            position: relative;
+            /* レスポンシブ対応: auth-containerに対する相対サイズ（元の比率を維持） */
+            width: 46.67%; /* 350px / 750px = 0.4667 */
+            height: 60%; /* 450px / 750px = 0.6 */
+            margin-top: 8%; /* 60px / 750px = 0.08 */
+            margin-left: 2%; /* 15px / 750px = 0.02 */
+        }
+
+        .auth-card {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.5s ease-in-out;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            /* background-image: url('img_auth_card_base.png');
+            background-size: 100% 100%;
+            background-repeat: no-repeat; */
+            /* レスポンシブ対応: パディングを小さく調整（小さい画面でもはみ出さないように） */
+            padding: clamp(10px, 3vh, 25px) clamp(10px, 3vh, 18px); /* 上下・左右を小さく */
+            box-sizing: border-box;
+            font-family: var(--font-pixel);
+            box-shadow: inset 0 0 8px rgba(0,0,0,0.3), 0 2px 5px rgba(0,0,0,0.2);
+            cursor: pointer;
+            overflow: hidden; /* はみ出し防止 */
+        }
+
+        /* Login card - initially in front */
+        .auth-card-login {
+            /* background-color: #a0a9a6; /* Asset: 平穏の感情色 (ログインカード) */
+            top: 0;
+            left: 0;
+            z-index: 2;
+            background-image: url('<%= asset_path("img_auth_card_in.png") %>');
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+            border-top-left-radius: 80px 15px;
+            border-top-right-radius: 30px 20px;
+            border-bottom-right-radius: 60px 15px;
+        }
+
+        /* Signup card - initially behind and offset */
+        .auth-card-signup {
+            /* background-color: #b07a70; /* Asset: 混沌の感情色 (新規登録カード) */
+            /* レスポンシブ対応: auth-card-wrapperに対する相対オフセット */
+            top: 4.44%; /* 20px / 450px = 0.0444 */
+            left: 8.57%; /* 30px / 350px = 0.0857 */
+            z-index: 1;
+            background-image: url('<%= asset_path("img_auth_card_up.png") %>');
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+            border-radius: 15px 0;
+        }
+
+        /* When login is active (default state) */
+        .auth-card-wrapper:not(.signup-active) .auth-card-login {
+            top: 0;
+            left: 0;
+            z-index: 2;
+            
+        }
+
+        .auth-card-wrapper:not(.signup-active) .auth-card-signup {
+            /* レスポンシブ対応: auth-card-wrapperに対する相対オフセット */
+            top: 4.44%; /* 20px / 450px = 0.0444 */
+            left: 8.57%; /* 30px / 350px = 0.0857 */
+            z-index: 1;
+        }
+
+        /* When signup is active */
+        .auth-card-wrapper.signup-active .auth-card-login {
+            /* レスポンシブ対応: auth-card-wrapperに対する相対オフセット */
+            top: 4.44%; /* 20px / 450px = 0.0444 */
+            left: -8.57%; /* -30px / 350px = -0.0857 */
+            z-index: 1;
+        }
+
+        .auth-card-wrapper.signup-active .auth-card-signup {
+            top: 0;
+            left: 0;
+            z-index: 2;
+        }
+
+        .auth-card h2 {
+            margin-top: 0;
+            margin-bottom: clamp(4px, 1vh, 8px); /* マージンを小さく */
+            color: var(--color-ink);
+            /* レスポンシブ対応: フォントサイズを小さく調整（小さい画面でもはみ出さないように） */
+            font-size: clamp(14px, 4vh, 22px); /* 24pxから22pxに縮小 */
+        }
+        
+        .auth-card form {
+            margin-top: auto; /* form要素をauth-cardの下に寄せる */
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 0; /* flexboxのはみ出し防止 */
+            flex-shrink: 1; /* 必要に応じて縮小 */
+        }
+
+        .auth-card input[type="text"],
+        .auth-card input[type="email"],
+        .auth-card input[type="password"] {
+            width: 90%;
+            box-sizing: border-box; /* パディングとボーダーを含む */
+            /* レスポンシブ対応: パディングとマージンを小さく調整（小さい画面でもはみ出さないように） */
+            padding: clamp(5px, 1.5vh, 8px); /* 10pxから8pxに縮小 */
+            margin-bottom: clamp(6px, 2vh, 12px); /* 15pxから12pxに縮小 */
+            background-color: rgba(var(--color-paper-rgb), 0.8); /* Asset: 紙の質感 */
+            border: 1px solid var(--color-brass-dark); /* Asset: 暗い真鍮の縁取り */
+            font-family: var(--font-pixel);
+            /* レスポンシブ対応: フォントサイズを小さく調整 */
+            font-size: clamp(11px, 3vh, 15px); /* 16pxから15pxに縮小 */
+            color: var(--color-ink);
+            outline: none;
+            cursor: text; /* テキスト入力用のカーソル */
+        }
+
+        .auth-card input::placeholder {
+            color: var(--color-ink-light); /* Asset: 薄いインクの色 */
+            opacity: 0.7;
+        }
+
+        .auth-card button {
+            width: 100%;
+            box-sizing: border-box; /* パディングとボーダーを含む */
+            /* レスポンシブ対応: パディングを小さく調整（小さい画面でもはみ出さないように） */
+            padding: clamp(6px, 2vh, 10px); /* 12pxから10pxに縮小 */
+            background-color: var(--color-ink-light); /* Asset: 薄いインクの色 */
+            color: var(--color-paper); /* Asset: 紙の質感 */
+            border: 2px solid var(--color-brass); /* Asset: 真鍮の縁取り */
+            font-family: var(--font-pixel);
+            /* レスポンシブ対応: フォントサイズを小さく調整 */
+            font-size: clamp(12px, 3.5vh, 16px); /* 18pxから16pxに縮小 */
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .auth-card button:hover {
+            background-color: var(--color-ink); /* Asset: インクの色 */
+        }
+
+
+        .error-message {
+            color: var(--color-pin-head); /* Asset: ピンの頭の色 (エラーメッセージの色) */
+            font-family: var(--font-pixel);
+            /* レスポンシブ対応: フォントサイズを小さく調整 */
+            font-size: clamp(9px, 2.5vh, 13px); /* 14pxから13pxに縮小 */
+            text-align: center;
+            width: 90%; /* 幅を制限 */
+            box-sizing: border-box;
+            /* レスポンシブ対応: マージンを小さく調整 */
+            margin-top: clamp(4px, 1.5vh, 8px); /* 10pxから8pxに縮小 */
+            min-height: clamp(12px, 3.5vh, 18px); /* 20pxから18pxに縮小 */
+            overflow: hidden;
+            word-wrap: break-word; /* 長いテキストを折り返し */
+        }
+        /* Sand crumble animation for error messages (エラーメッセージの崩壊アニメーション) */
+        @keyframes crumble-text {
+            0% { transform: translateY(0) scale(1); opacity: 1; filter: blur(0px); }
+            50% { transform: translateY(10px) scale(0.9); opacity: 0.5; filter: blur(1px); }
+            100% { transform: translateY(20px) scale(0.7); opacity: 0; filter: blur(2px); }
+        }
+        .error-message.crumble {
+            animation: crumble-text 1s forwards;
+        }
+        
+        /* Helper for rgba colors with CSS variables (no direct rgb vars in CSS) */
+        :root {
+            --color-peace-rgb: 120, 144, 156;
+            --color-chaos-rgb: 126, 87, 194;
+            --color-paper-rgb: 230, 215, 178;
+            --color-ink-light-rgb: 93, 64, 55;
+        }
+    </style>
+</head>
+<body>
+    <!-- 4:3 Viewport with outer wall as background (from 5.5) -->
+    <div class="viewport-container">
+        <!-- Back to index button -->
+        <div class="back-to-index-button" id="back-to-index-button"></div>
+
+        <div class="auth-container">
+            <!-- Asset: img_binder.png applied as background (認証用バインダー) -->
+            <div class="auth-card-wrapper" id="auth-card-wrapper">
+                <div class="auth-card auth-card-login" id="login-card">
+                    <h2>継続</h2>
+                    <form id="login-form">
+                        <input type="text" placeholder="ユーザー名 または メールアドレス" required>
+                        <input type="password" placeholder="パスワード" required>
+                        <div class="error-message" id="login-error"></div>
+                        <button type="submit">入館</button>
+                    </form>
+                </div>
+                <div class="auth-card auth-card-signup" id="signup-card">
+                    <h2>新規</h2>
+                    <form id="signup-form">
+                        <input type="text" placeholder="新しいユーザー名" required>
+                        <input type="email" placeholder="メールアドレス" required>
+                        <input type="password" placeholder="パスワード" required>
+                        <input type="password" placeholder="パスワード（確認）" required>
+                        <div class="error-message" id="signup-error"></div>
+                        <button type="submit">登録</button>
+                    </form>
+                </div>
+            </div>
+            <!-- インタラクティブ要素: 重なったカード。後ろのカードをクリックして切り替える。 -->
+        </div>
+    </div>
+
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check for opening eyes animation (from page transition)
+            checkAndOpenEyes();
+
+            const backButton = document.getElementById('back-to-index-button');
+            const authCardWrapper = document.getElementById('auth-card-wrapper');
+            const loginCard = document.getElementById('login-card');
+            const signupCard = document.getElementById('signup-card');
+            const loginForm = document.getElementById('login-form');
+            const signupForm = document.getElementById('signup-form');
+            const loginError = document.getElementById('login-error');
+            const signupError = document.getElementById('signup-error');
+
+            // Back to index button
+            backButton.addEventListener('click', () => {
+                playSound('sfx_ui_confirm.wav'); // Asset: 選択・決定音
+                navigateWithBlink('<%= root_path %>');
+            });
+
+            // Click on signup card (initially behind) to bring it to front
+            signupCard.addEventListener('click', (e) => {
+                // Only switch cards if clicking on the card itself, not form elements
+                if (!authCardWrapper.classList.contains('signup-active') &&
+                    e.target === signupCard) {
+                    e.preventDefault(); // Prevent form submission when just switching cards
+                    playSound('sfx_auth_card_slide.wav'); // Asset: カードの摩擦音
+                    authCardWrapper.classList.add('signup-active');
+                    // Clear any error messages when switching views
+                    loginError.textContent = '';
+                    signupError.textContent = '';
+                    loginError.classList.remove('crumble');
+                    signupError.classList.remove('crumble');
+                }
+            });
+
+            // Click on login card (behind when signup is active) to bring it to front
+            loginCard.addEventListener('click', (e) => {
+                // Only switch cards if clicking on the card itself, not form elements
+                if (authCardWrapper.classList.contains('signup-active') &&
+                    e.target === loginCard) {
+                    e.preventDefault(); // Prevent form submission when just switching cards
+                    playSound('sfx_auth_card_slide.wav'); // Asset: カードの摩擦音
+                    authCardWrapper.classList.remove('signup-active');
+                    // Clear any error messages when switching views
+                    loginError.textContent = '';
+                    signupError.textContent = '';
+                    loginError.classList.remove('crumble');
+                    signupError.classList.remove('crumble');
+                }
+            });
+
+            // Simulate login success/failure
+            loginForm.addEventListener('submit', (event) => {
+                event.preventDefault();
+                const username = loginForm.querySelector('input[type="text"]').value;
+                const password = loginForm.querySelector('input[type="password"]').value;
+
+                loginError.textContent = ''; // Clear previous error
+                loginError.classList.remove('crumble');
+
+                if (username === 'user' && password === 'pass') {
+                    console.log('Login successful');
+                    // playSound('sfx_boundary_pass.wav'); // Asset: 境界を越える音
+                    navigateWithBlink('<%= library_path %>'); // Transition to main hub
+                } else {
+                    console.log('Login failed');
+                    loginError.textContent = '入館を拒まれました。';
+                    loginError.classList.add('crumble');
+                    // playSound('sfx_sand_crumble.wav'); // Asset: 砂の崩落音（さらさら）
+                }
+            });
+
+            // Simulate signup success/failure
+            signupForm.addEventListener('submit', (event) => {
+                event.preventDefault();
+                const newUsername = signupForm.querySelector('input[type="text"]').value;
+                const newPassword = signupForm.querySelectorAll('input[type="password"]')[0].value;
+                const confirmPassword = signupForm.querySelectorAll('input[type="password"]')[1].value;
+
+                signupError.textContent = ''; // Clear previous error
+                signupError.classList.remove('crumble');
+
+                if (newPassword !== confirmPassword) {
+                    signupError.textContent = 'パスワードが一致しません。';
+                    signupError.classList.add('crumble');
+                    // playSound('sfx_sand_crumble.wav'); // Asset: 砂の崩落音（さらさら）
+                } else if (newUsername === 'user') { // Simulate username taken
+                    signupError.textContent = 'そのユーザー名は既に存在します。';
+                    signupError.classList.add('crumble');
+                    // playSound('sfx_sand_crumble.wav'); // Asset: 砂の崩落音（さらさら）
+                }
+                else {
+                    console.log('Signup successful');
+                    // Auto-login after successful signup
+                    // playSound('sfx_boundary_pass.wav'); // Asset: 境界を越える音
+                    navigateWithBlink('<%= library_path %>'); // Transition to main hub
+                }
+            });
+        });
+    </script>
+</body>
+</html>
