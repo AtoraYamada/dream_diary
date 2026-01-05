@@ -559,7 +559,7 @@ RSpec.describe 'Api::V1::Dreams', type: :request do
           expect(results.any? { |r| r.include?('古い頻出タグ夢') }).to be(true)
 
           # 「無関係の夢」は含まれないこと（多用タグを持たない夢は選ばれない）
-          expect(results.all? { |r| !r.include?('無関係の夢') }).to be(true)
+          expect(results.all? { |r| r.exclude?('無関係の夢') }).to be(true)
         end
       end
 
