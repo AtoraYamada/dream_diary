@@ -80,6 +80,7 @@ PostgreSQL 15
 | フロントエンド | Vanilla JS | 既存プロトタイプ活用 |
 | バックエンド | Rails JSON API | Devise統合、開発速度 |
 | 認証 | Devise + JSON | 標準的、セキュア |
+| CSRF保護 | セッションベースAPI | Devise認証でセッションCookie使用、CSRF攻撃防止が必須 |
 | データ構造 | Dream ⇔ Tag (多対多) | 柔軟なタグ付け |
 | ページ分割 | 500字/ページ | 読みやすさ考慮 |
 | タグ読み仮名 | kuromoji.js (クライアント) | サーバー負荷回避 |
