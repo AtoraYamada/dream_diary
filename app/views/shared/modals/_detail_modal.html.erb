@@ -1,0 +1,147 @@
+<%# 詳細表示モーダル（見開き本）- list.html.erb用 %>
+
+<style>
+    /* Detail Modal Overlay (詳細表示用モーダル) */
+    .detail-modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        background-color: rgba(0, 0, 0, 0.3);
+        z-index: 9000;  /* blink overlay (10000) より低いが、他の要素より高い */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease-out;
+    }
+
+    .detail-modal-overlay.active {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    /* Open Book Container (見開き本) */
+    .open-book-container {
+        position: relative;
+        width: 90%;
+        max-width: 880px;
+        height: auto;
+        aspect-ratio: 8 / 5; /* Maintain 880:550 ratio */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 10;
+        filter: drop-shadow(0px 10px 15px rgba(0,0,0,0.7)); /* Asset: 汎用影テクスチャ */
+    }
+
+    .book-frame {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background-image: url('<%= asset_path("img_book_open_frame_chaos.png") %>'); /* Asset: 開かれた本のフレーム(混沌) */
+        background-size: 100% 100%;
+        background-repeat: no-repeat;
+        z-index: 3;
+    }
+
+    .book-page {
+        position: absolute;
+        width: 45%; /* Each page takes almost half the book frame width */
+        height: 97%;
+        top: 1%;
+        background-color: var(--color-paper); /* Default paper color */
+        padding: 40px 20px;
+        box-sizing: border-box;
+        overflow-y: auto;
+        font-family: var(--font-pixel);
+        font-size: 14px;
+        line-height: 1.6;
+        color: var(--color-ink);
+        -ms-overflow-style: none; scrollbar-width: none;
+        z-index: 4; /* Above frame */
+    }
+    .book-page::-webkit-scrollbar { display: none; }
+
+    .book-page-left {
+        left: 5%; /* Adjusted position */
+        /* Asset: img_book_open_left_page.png (開かれた本の左ページ) */
+        /* background-image: url('img_book_open_left_page.png'); */
+        background-size: cover;
+        background-blend-mode: multiply; /* Blend page texture with background color */
+        border-right: 2px solid rgba(0,0,0,0.3); /* Added border to simulate spine shadow */
+    }
+
+    .book-page-right {
+        right: 5%; /* Adjusted position */
+        /* Asset: img_book_open_right_page.png (開かれた本の右ページ) */
+        /* background-image: url('img_book_open_right_page.png'); */
+        background-size: cover;
+        background-blend-mode: multiply; /* Blend page texture with background color */
+        border-left: 2px solid rgba(0,0,0,0.3); /* Added border to simulate spine shadow */
+    }
+
+    /* Edit and Delete buttons for detail modal */
+    .hourglass-delete-btn {
+        position: fixed;
+        bottom: calc(5% + 20px);  /* Bottom of modal viewport area + margin */
+        right: calc(5% + 20px);   /* Right of modal viewport area + margin */
+        width: clamp(70px, 7vw, 90px);
+        height: clamp(70px, 7vw, 90px);
+        background-image: url('<%= asset_path("icon_hourglass_antique.png") %>'); /* Asset: アンティーク砂時計アイコン */
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+        cursor: pointer;
+        z-index: 9100;  /* Above modal overlay but below blink */
+        filter: drop-shadow(0px 5px 5px rgba(0,0,0,0.4));
+    }
+    .hourglass-delete-btn:hover {
+        filter: brightness(1.2) drop-shadow(0px 5px 5px rgba(0,0,0,0.4));
+        animation: rotate-hourglass 1s infinite linear;
+    }
+
+    @keyframes rotate-hourglass {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    .edit-quill-knife-btn {
+        position: fixed;
+        bottom: calc(5% + 130px);  /* Above hourglass with more spacing */
+        right: calc(5% + 20px);     /* Same right position as hourglass */
+        width: clamp(70px, 7vw, 90px);
+        height: clamp(70px, 7vw, 90px);
+        background-image: url('<%= asset_path("icon_edit_quill_knife.png") %>'); /* Asset: 羽ペンとナイフの編集アイコン */
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+        cursor: pointer;
+        z-index: 9100;  /* Above modal overlay but below blink */
+        filter: drop-shadow(0px 5px 5px rgba(0,0,0,0.4));
+    }
+    .edit-quill-knife-btn:hover {
+        filter: brightness(1.2) drop-shadow(0px 5px 5px rgba(0,0,0,0.4));
+    }
+</style>
+
+<!-- Detail Modal (詳細表示用) -->
+<div class="detail-modal-overlay" id="detail-modal-overlay">
+    <div class="open-book-container">
+        <div class="book-frame"></div>
+        <div class="book-page book-page-left" id="left-page">
+            <!-- 左ページの内容が動的に挿入されます -->
+        </div>
+        <div class="book-page book-page-right" id="right-page">
+            <!-- 右ページの内容が動的に挿入されます -->
+        </div>
+    </div>
+    <!-- 編集ボタン（羽ペンとペーパーナイフ） -->
+    <div class="edit-quill-knife-btn interactive-object" id="detail-edit-button"></div>
+    <!-- 削除ボタン（砂時計） -->
+    <div class="hourglass-delete-btn interactive-object" id="detail-delete-button"></div>
+</div>
