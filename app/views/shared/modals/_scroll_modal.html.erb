@@ -1,0 +1,391 @@
+<%# 巻物モーダル（作成/編集共通）%>
+<%# 変数: bookmark_id - 保存ボタンのID（ページ固有のJS参照用）%>
+
+<style>
+    /* Create/Edit Modal Overlay (巻物モーダル) */
+    .create-edit-modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        background-color: rgba(0, 0, 0, 0.3);
+        z-index: 9000;  /* blink overlay (10000) より低いが、他の要素より高い */
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease-out;
+    }
+
+    .create-edit-modal-overlay.active {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    /* Background blur layer (背景のぼかし層 - オーバーレイの背後) */
+    .create-edit-modal-overlay::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0);
+        filter: blur(8px) brightness(0.6);
+        z-index: -1;
+        pointer-events: none;
+    }
+
+    /* Scroll Middle Animation (scroll-middleの展開・収縮) */
+    @keyframes scroll-unfurl {
+        from {
+            height: 0;
+        }
+        to {
+            height: calc(95vh * 0.8 - 50px);  /* scroll-top(50px) + scroll-bottom(50px) - 負マージン(50px) */
+        }
+    }
+
+    @keyframes scroll-roll-up {
+        from {
+            height: calc(95vh * 0.8 - 50px);
+        }
+        to {
+            height: 0;
+        }
+    }
+
+    /* Scroll Container (巻物の構造) */
+    .scroll-container {
+        display: flex;
+        flex-direction: column;
+        width: calc(95vh * 4 / 3 * 0.8);  /* viewport幅の80% */
+        height: auto;  /* 子要素のサイズに応じて自動調整 */
+        margin: 0 auto;  /* 中央に配置 */
+        margin-top: calc(95vh * 0.05);  /* 上からの余白 */
+        position: relative;
+        z-index: 10;
+        filter: drop-shadow(0px 10px 10px rgba(0,0,0,0.5)); /* 暫定的なドロップシャドウ */
+    }
+
+    /* scroll-middleの背景（常時表示） */
+    .scroll-container::before {
+        content: '';
+        position: absolute;
+        top: 25px;  /* scroll-topの高さ50px - 負マージン25px */
+        left: 50%;
+        transform: translateX(-50%);
+        width: 85%;  /* scroll-middleと同じ幅 */
+        bottom: 25px;  /* scroll-bottomの高さ50px - 負マージン25px */
+        background-color: var(--color-paper);
+        z-index: 0;
+    }
+
+    /* scroll-middle の展開・収縮アニメーション */
+    .scroll-middle.unfurl {
+        animation: scroll-unfurl 0.6s ease-out forwards;
+    }
+
+    .scroll-middle.roll-up {
+        animation: scroll-roll-up 0.6s ease-in forwards;
+    }
+
+    .scroll-top {
+        width: 100%;
+        height: 50px;
+        /* Asset: img_scroll_top_bottom.png (巻物：上端) */
+        background-image: url('<%= asset_path("img_scroll_top_bottom.png") %>');
+        background-size: 100% 100%;
+        background-repeat: no-repeat;
+        background-position: center;
+        position: relative;
+        z-index: 2;
+    }
+
+    .scroll-middle {
+        height: 0;  /* 初期状態：閉じている */
+        width: 85%;
+        margin-left: auto;
+        margin-right: auto;
+        padding: 30px;
+        box-sizing: border-box;
+        background-color: var(--color-paper);  /* 感情彩色が上書きされる */
+        overflow: hidden;
+        position: relative;
+        z-index: 1;
+        margin-top: -25px;
+        margin-bottom: -25px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .scroll-middle textarea {
+        width: 100%;
+        flex: 0 1 auto;
+        height: 250px;
+        border: none;
+        background-color: transparent;
+        font-family: var(--font-pixel);
+        font-size: 16px;
+        color: var(--color-ink);
+        resize: none;
+        overflow-y: auto;
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
+    .scroll-middle textarea::-webkit-scrollbar {
+        display: none;
+    }
+
+    .scroll-middle textarea:focus {
+        outline: none;
+    }
+
+    /* タイトル入力欄 */
+    .dream-title-input {
+        width: 100%;
+        padding: 10px 0;
+        border: none;
+        border-bottom: 2px solid var(--color-brass-dark);
+        background-color: transparent;
+        font-family: var(--font-pixel);
+        font-size: 20px;
+        font-weight: bold;
+        color: var(--color-ink);
+        margin-bottom: 15px;
+    }
+
+    .dream-title-input:focus {
+        outline: none;
+        border-bottom-color: var(--color-brass);
+    }
+
+    .dream-title-input::placeholder {
+        color: var(--color-ink-light);
+        opacity: 0.6;
+    }
+
+    .tag-input-area {
+        margin-top: 20px;
+    }
+
+    .tag-input-area h3 {
+        font-size: 14px;
+        margin: 10px 0 5px 0;
+        color: var(--color-ink);
+    }
+
+    .tag-input-area input {
+        width: 100%;
+        padding: 5px;
+        border: none;
+        border-bottom: 1px solid var(--color-brass-dark);
+        background-color: transparent;
+        color: var(--color-ink);
+        font-family: var(--font-pixel);
+        margin-bottom: 10px;
+    }
+
+    .tag-input-area input:focus {
+        outline: none;
+        border-bottom-color: var(--color-brass);
+    }
+
+    .tag-input-area input::placeholder {
+        color: var(--color-ink-light);
+        opacity: 0.6;
+    }
+
+    .selected-tags-area {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        margin-bottom: 10px;
+    }
+
+    .tag-badge {
+        background-color: var(--color-brass-dark);
+        color: var(--color-paper);
+        padding: 3px 8px;
+        border-radius: 3px;
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .tag-badge .remove-btn {
+        cursor: pointer;
+        font-weight: bold;
+    }
+
+    .scroll-bottom {
+        width: 100%;
+        height: 50px;
+        /* Asset: img_scroll_top_bottom.png (巻物：下端・上下反転) */
+        background-image: url('<%= asset_path("img_scroll_top_bottom.png") %>');
+        transform: scaleY(-1); /* 上下反転 */
+        background-size: 100% 100%;
+        background-repeat: no-repeat;
+        background-position: center;
+        position: relative;
+        z-index: 2;
+    }
+
+    /* Scroll Controls (インクボトルを画面下部中央に固定) */
+    .scroll-controls {
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        flex-direction: row;
+        gap: 20px;
+        z-index: 9100;  /* モーダルオーバーレイより上、blink より下 */
+    }
+
+    /* Emotion Ink Bottles (4色のインク瓶 - 横並び) */
+    .ink-bottles {
+        display: flex;
+        flex-direction: row;
+        gap: 10px;
+    }
+
+    .ink-bottle {
+        width: 90px;
+        height: 120px;
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+        cursor: pointer;
+        position: relative;
+        transition: filter 0.2s;
+        filter: drop-shadow(0px 5px 5px rgba(0,0,0,0.4));
+    }
+    .ink-bottle:hover {
+        filter: brightness(1.2) drop-shadow(0px 5px 5px rgba(0,0,0,0.4));
+    }
+
+    /* インクボトルのラベル（ガラス部分に表示される漢字） */
+    .ink-label {
+        position: absolute;
+        top: 68%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-family: var(--font-pixel);
+        font-size: 20px;
+        font-weight: bold;
+        color: rgba(0, 0, 0, 0.7);
+        letter-spacing: 2px;
+        pointer-events: none;
+        text-shadow: 0px 0px 2px rgba(255, 255, 255, 0.5);
+        -webkit-text-stroke: 0.5px rgba(0, 0, 0, 0.5);
+    }
+
+    /* 各感情に対応するインクボトル画像 */
+    .ink-bottle.peace {
+        background-image: url('<%= asset_path("img_ink_bottle_peace.png") %>');
+    }
+    .ink-bottle.chaos {
+        background-image: url('<%= asset_path("img_ink_bottle_chaos.png") %>');
+    }
+    .ink-bottle.fear {
+        background-image: url('<%= asset_path("img_ink_bottle_fear.png") %>');
+    }
+    .ink-bottle.elation {
+        background-image: url('<%= asset_path("img_ink_bottle_elation.png") %>');
+    }
+
+    .ink-bottle.selected {
+        outline: 2px solid var(--color-brass); /* Highlight selected */
+        outline-offset: -2px; /* Draw outline inside the element */
+        filter: brightness(1.5) drop-shadow(0px 5px 10px currentColor);
+    }
+
+    /* Silver Bookmark (Save Button - scroll-containerの右端に揃える) */
+    .save-bookmark {
+        position: fixed;
+        right: calc((100vw - (95vh * 4 / 3 * 0.8)) / 2);
+        bottom: 30px;
+        width: 75px;
+        height: 120px;
+        background-image: url('<%= asset_path("icon_bookmark_silver.png") %>');
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+        cursor: pointer;
+        transition: transform 0.2s, filter 0.2s;
+        filter: drop-shadow(0px 5px 5px rgba(0,0,0,0.4));
+        z-index: 9100;
+    }
+
+    .save-bookmark:hover {
+        transform: translateY(-5px);
+        filter: brightness(1.2);
+    }
+
+    /* Silver Bookmark Glow Animation (保存時の発光演出 - しおりが挿さる動き) */
+    @keyframes bookmark-glow {
+        0% {
+            transform: translateY(0) scale(1);
+            filter: brightness(1) saturate(1);
+        }
+        50% {
+            transform: translateY(-10px) scale(1.1);
+            filter: brightness(1.5) saturate(2);  /* 金色で発光 */
+        }
+        100% {
+            transform: translateY(0) scale(1);
+            filter: brightness(1) saturate(1);
+        }
+    }
+
+    .save-bookmark.glow {
+        animation: bookmark-glow 0.3s ease-out;
+    }
+</style>
+
+<!-- Create/Edit Modal Overlay -->
+<div class="create-edit-modal-overlay" id="create-edit-modal-overlay">
+    <div class="scroll-container" id="scroll-container">
+        <div class="scroll-top"></div>
+        <div class="scroll-middle">
+            <input type="text" id="dream-title-input" class="dream-title-input" placeholder="タイトル">
+            <textarea id="dream-textarea" placeholder="夢の内容をここに書き記す..."></textarea>
+            <div class="tag-input-area">
+                <h3>登場人物</h3>
+                <input type="text" id="character-tag-input" placeholder="登場人物名を入力">
+                <div id="character-tags-display" class="selected-tags-area"></div>
+                <h3>場所</h3>
+                <input type="text" id="location-tag-input" placeholder="場所名を入力">
+                <div id="location-tags-display" class="selected-tags-area"></div>
+            </div>
+        </div>
+        <div class="scroll-bottom"></div>
+    </div>
+    <!-- Scroll Controls (Ink Bottles) -->
+    <div class="scroll-controls">
+        <!-- Emotion Ink Bottles (4色のインク瓶) -->
+        <div class="ink-bottles">
+            <div class="ink-bottle peace interactive-object" data-emotion="peace">
+                <span class="ink-label">平穏</span>
+            </div>
+            <div class="ink-bottle chaos interactive-object" data-emotion="chaos">
+                <span class="ink-label">混沌</span>
+            </div>
+            <div class="ink-bottle fear interactive-object" data-emotion="fear">
+                <span class="ink-label">恐怖</span>
+            </div>
+            <div class="ink-bottle elation interactive-object" data-emotion="elation">
+                <span class="ink-label">高揚</span>
+            </div>
+        </div>
+    </div>
+    <!-- Silver Bookmark (Save Button) -->
+    <div class="save-bookmark interactive-object" id="<%= bookmark_id %>"></div>
+</div>
