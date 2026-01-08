@@ -57,7 +57,8 @@ PostgreSQL 15
 
 | レイヤー | パス |
 |---------|------|
-| ビュー | app/views/pages/*.html.erb |
+| ビュー（ページ） | app/views/pages/*.html.erb |
+| ビュー（パーシャル） | app/views/shared/**/*.html.erb |
 | JavaScript | app/javascript/*.js |
 | コントローラ | app/controllers/api/v1/*.rb |
 | Concerns | app/controllers/concerns/api/*.rb |
