@@ -120,17 +120,41 @@ PostgreSQL 15
 
 ### CSS構成
 
+Sprocketsディレクティブ（`*= require`）による一括読み込み。ページ固有CSSはhtml classでスコープ分離。
+
+**コア**
+
 | ファイル | 役割 |
 |---------|------|
-| app/assets/stylesheets/application.css | エントリポイント |
-| app/assets/stylesheets/base.css | リセット、変数定義 |
-| app/assets/stylesheets/layout.css | 共通レイアウト |
+| app/assets/stylesheets/application.css | エントリポイント（Sprocketsマニフェスト） |
+| app/assets/stylesheets/base.css | CSS変数、最小限のリセットCSS |
+| app/assets/stylesheets/layout.css | 共通レイアウト（viewport-container等） |
 | app/assets/stylesheets/blink.css | 瞬き演出 |
-| app/assets/stylesheets/modal.css | モーダル共通 |
-| app/assets/stylesheets/scroll.css | 巻物スタイル |
-| app/assets/stylesheets/book.css | 本スタイル |
-| app/assets/stylesheets/auth.css | 認証画面固有 |
-| app/assets/stylesheets/library.css | 書斎画面固有 |
+
+**コンポーネント**
+
+| ファイル | 役割 |
+|---------|------|
+| components/cursors.css | カーソルスタイル |
+| components/buttons.css | ボタンスタイル |
+| components/modal/scroll.css | 巻物モーダル |
+| components/modal/index_card.css | 索引箱モーダル |
+| components/modal/detail.css | 詳細モーダル |
+| components/modal/dream_flood.css | 夢の氾濫オーバーレイ |
+
+**ページ固有**
+
+| ファイル | 役割 | スコープ |
+|---------|------|---------|
+| pages/index.css | トップ画面 | html.top-page |
+| pages/auth.css | 認証画面 | html.auth-page |
+| pages/library.css | 書斎画面 | html.library-page |
+| pages/list.css | 一覧画面 | html.list-page |
+
+**重要な実装判断**
+- Google Fontsは`<link>`タグで読み込み（preconnect最適化）
+- 全CSSを一括読み込み（初回読み込み後は画像キャッシュ有効）
+- Asset Pipelineによる相対パス自動ダイジェスト化
 
 ### API連携パターン
 
