@@ -1,0 +1,9 @@
+<%# チラつき完全防止：URL確認して即座にhtml要素にクラス追加 %>
+<script>
+    (function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('blink') === 'open' || urlParams.get('awakening') === 'true') {
+            document.documentElement.classList.add('will-open-eyes');
+        }
+    })();
+</script>
