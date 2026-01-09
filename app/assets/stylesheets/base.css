@@ -1,0 +1,49 @@
+/* Base Styles: CSS Variables & Minimal Reset */
+
+/* Minimal CSS Reset - Browser compatibility */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+body,
+h1, h2, h3, h4, h5, h6,
+p, ul, ol, li,
+figure, blockquote {
+    margin: 0;
+    padding: 0;
+}
+
+/* CSS Variables */
+:root {
+    /* Fonts */
+    --font-pixel: 'DotGothic16', monospace; /* Asset: ドットゴシック体フォント */
+    --font-serif: 'Sawarabi Mincho', serif; /* Asset: さわらび明朝体フォント */
+
+    /* Colors for wooden elements */
+    --color-dark-wood: #3a2e2b; /* Asset: 暗い木材の質感 */
+    --color-light-wood: #5c4e48; /* Asset: 明るい木材の質感 */
+
+    /* Colors for paper/ink */
+    --color-paper: #e6d7b2; /* Asset: 紙の質感 */
+    --color-ink: #3e2723; /* Asset: インクの質感 */
+    --color-ink-light: #5d4037; /* Asset: 薄いインクの質感 */
+
+    /* Colors for brass/metal elements */
+    --color-brass: #c9b183; /* Asset: 真鍮の質感 */
+    --color-brass-dark: #7c6d54; /* Asset: 暗い真鍮の質感 */
+
+    /* Colors for UI elements */
+    --color-pin-head: #e57373; /* Asset: ピンの頭の色 (例: タグのピン) */
+
+    /* Emotion Colors (from 5.6.4) */
+    --color-peace: #a0a9a6;   /* 平穏の感情色 */
+    --color-chaos: #b07a70;   /* 混沌の感情色 */
+    --color-fear: #838387;    /* 恐怖の感情色 */
+    --color-elation: #ca9e63; /* 高揚の感情色 */
+
+    /* Viewport size (from 5.5) */
+    --viewport-width: 320px; /* 4:3アスペクト比の基準幅 */
+    --viewport-height: 240px; /* 4:3アスペクト比の基準高さ */
+}

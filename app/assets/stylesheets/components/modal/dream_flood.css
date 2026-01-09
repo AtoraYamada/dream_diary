@@ -1,0 +1,66 @@
+/* Dream Flood Overlay */
+.dream-flood-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 15;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease-in-out;
+    background-color: rgba(75, 0, 130, 0.3); /* Placeholder for window/mirror distortion */
+    background-size: cover;
+    animation: distort-noise 1s infinite alternate; /* Continuous subtle distortion */
+}
+
+.dream-flood-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+@keyframes distort-noise {
+    0% { filter: hue-rotate(0deg) blur(0px); }
+    100% { filter: hue-rotate(360deg) blur(1px); }
+}
+
+/* スクロールコンテナ（外側） */
+.dream-fragment-container {
+    max-width: 50%;
+    max-height: 60vh; /* 表示域を制限 */
+    overflow-y: scroll; /* スクロール可能 */
+    background-color: rgba(0, 0, 0, 0.5);
+    border: 2px solid var(--color-brass);
+    /* スクロールバー非表示 */
+    -ms-overflow-style: none; /* IE, Edge */
+    scrollbar-width: none; /* Firefox */
+}
+
+.dream-fragment-container::-webkit-scrollbar {
+    display: none; /* Chrome, Safari */
+}
+
+/* テキスト表示（内側・ミラー反転） */
+.dream-fragment-text {
+    color: var(--color-paper);
+    font-family: var(--font-pixel);
+    font-size: 20px;
+    text-align: left; /* 左寄せ */
+    padding: 20px;
+    position: relative;
+    /* Mirror text effect */
+    transform: scaleX(-1);
+}
+
+.dream-fragment-text p {
+    text-indent: 1em; /* 最初の一文字分字下げ */
+}
+
+.dream-fragment-container:hover .dream-fragment-text {
+    transform: scaleX(1); /* Flip to normal on hover */
+    filter: brightness(1.5);
+}

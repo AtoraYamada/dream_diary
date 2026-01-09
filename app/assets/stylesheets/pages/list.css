@@ -1,0 +1,210 @@
+html.list-page body {
+    /* Asset: bg_library_wall_up (書斎の壁の背景) */
+    background-image: url('bg_library_wall_up.png');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    cursor: grab;
+    overflow: hidden;
+}
+
+/* Page-specific viewport settings (一覧ページ専用) */
+html.list-page .viewport-container {
+    /* Asset: bg_library_wall_up (書斎の壁の背景) */
+    background-image: url('bg_library_wall_up.png');
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.bookshelf-display {
+    position: relative;
+    width: 80%;
+    height: 80%;
+    min-height: 600px; /* Ensure minimum height for tab display (778px viewport) */
+    max-height: 630px; /* Fix relative position between bookshelf and book-spine */
+    top: 9.5%;
+    background-image: url('img_bookshelf_empty.png'); /* Asset: 本棚本体 */
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 5% 0; /* Vertical padding for shelves */
+    box-sizing: border-box;
+}
+
+.book-spines-container {
+    display: flex;
+    flex-wrap: wrap; /* Allows books to wrap to next shelf */
+    gap: 5px; /* Spacing between books */
+    max-width: 90%; /* Keep books within shelf limits */
+    height: 100%;
+    align-content: flex-start; /* Stack books from the top */
+    position: relative;
+    z-index: 2; /* Above bookshelf background */
+}
+
+
+.book-spine {
+    width: 30px; /* Width of a book spine */
+    height: 150px;
+    position: relative;
+    cursor: pointer;
+    overflow: hidden;
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+
+    writing-mode: vertical-rl; /* Vertical text */
+    text-orientation: upright;
+    color: var(--color-paper);
+    font-family: var(--font-pixel);
+    font-size: 14px;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+/* Emotion-specific book spine backgrounds */
+.book-spine.peace {
+    background-image: url('img_book_spine_peace.png'); /* Asset: 平穏の感情色 */
+}
+.book-spine.chaos {
+    background-image: url('img_book_spine_chaos.png'); /* Asset: 混沌の感情色 */
+}
+.book-spine.fear {
+    background-image: url('img_book_spine_fear.png'); /* Asset: 恐怖の感情色 */
+}
+.book-spine.elation {
+    background-image: url('img_book_spine_elation.png'); /* Asset: 高揚の感情色 */
+}
+
+.book-spine:hover {
+    transform: translateY(-5px); /* Slight lift */
+    box-shadow: 4px 4px 10px rgba(0,0,0,0.5);
+}
+
+/* Book Spine Glow Animation (保存完了時の発光演出 - ゆっくり点滅) */
+@keyframes book-spine-glow {
+    0% {
+        filter: brightness(1);
+    }
+    10% {
+        filter: brightness(1.8) drop-shadow(0px 8px 15px rgba(255, 255, 200, 0.8));
+    }
+    20% {
+        filter: brightness(1.8) drop-shadow(0px 8px 15px rgba(255, 255, 200, 0.8));
+    }
+    30% {
+        filter: brightness(1);
+    }
+    40% {
+        filter: brightness(1.8) drop-shadow(0px 8px 15px rgba(255, 255, 200, 0.8));
+    }
+    50% {
+        filter: brightness(1.8) drop-shadow(0px 8px 15px rgba(255, 255, 200, 0.8));
+    }
+    60% {
+        filter: brightness(1);
+    }
+    70% {
+        filter: brightness(1.8) drop-shadow(0px 8px 15px rgba(255, 255, 200, 0.8));
+    }
+    80% {
+        filter: brightness(1.8) drop-shadow(0px 8px 15px rgba(255, 255, 200, 0.8));
+    }
+    100% {
+        filter: brightness(1);
+    }
+}
+
+.book-spine.glow {
+    animation: book-spine-glow 3s ease-in-out;
+}
+
+.book-spine::after {
+    content: attr(data-title); /* Use data-title for content */
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0;
+    transition: opacity 0.2s;
+    pointer-events: none; /* Don't block click on spine */
+}
+.book-spine:hover::after {
+    opacity: 1; /* Show title on hover */
+}
+
+
+/* Pagination controls */
+.pagination-left, .pagination-right {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: clamp(60px, 6vw, 80px);
+    height: clamp(80px, 8vh, 100px);
+    background-color: rgba(0, 0, 0, 0.3);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: clamp(24px, 2.5vw, 30px);
+    cursor: pointer;
+    z-index: 10;
+    transition: background-color 0.2s;
+}
+.pagination-left:hover, .pagination-right:hover {
+    background-color: rgba(0, 0, 0, 0.6);
+}
+.pagination-left { left: 0; border-radius: 0 10px 10px 0; }
+.pagination-right { right: 0; border-radius: 10px 0 0 10px; }
+
+/* Index Box */
+.index-box-trigger {
+    position: absolute;
+    bottom: 0%;
+    right: 2%;
+    width: clamp(100px, 10vw, 130px);
+    height: clamp(120px, 12vw, 156px);
+    background-image: url('img_index_box_exterior.png'); /* Asset: 索引箱の外装 */
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    cursor: pointer;
+    z-index: 10;
+    filter: drop-shadow(0px 5px 5px rgba(0,0,0,0.4)); /* Asset: 汎用影テクスチャ */
+}
+.index-box-trigger:hover {
+    filter: brightness(1.2) drop-shadow(0px 5px 5px rgba(0,0,0,0.4));
+}
+
+/* Back to Library Button */
+.back-button {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    width: clamp(50px, 5vw, 60px);
+    height: clamp(50px, 5vw, 60px);
+    background-image: url('icon_back.png'); /* Asset: 操作アイコン/戻る */
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    cursor: pointer;
+    z-index: 15;
+    filter: drop-shadow(0px 2px 2px rgba(0,0,0,0.4));
+}
+.back-button:hover {
+    filter: brightness(1.2) drop-shadow(0px 2px 2px rgba(0,0,0,0.4));
+}
+
+/* Modal CSS moved to shared/modals/ partials */
+/* - _index_card_modal.html.erb */
+/* - _detail_modal.html.erb */
+/* - _scroll_modal.html.erb */

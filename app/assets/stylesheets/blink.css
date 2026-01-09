@@ -1,0 +1,86 @@
+/* Blinking Transition Effect */
+
+/* Blinking transition overlay (from 5.6.2) */
+/* 上下から黒い幕が閉じる演出 */
+.blink-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 10000; /* 全ての要素の一番上に表示 */
+    pointer-events: none; /* オーバーレイ自体はクリック不可 */
+    overflow: hidden;
+    isolation: isolate; /* Parent filters (awakening mode) won't affect this element */
+}
+
+/* 上側の黒い幕 */
+.blink-overlay::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 50vh;
+    background-color: #000;
+    transform: translateY(-100%); /* 初期状態: 上に完全に隠れている */
+}
+
+/* 下側の黒い幕 */
+.blink-overlay::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 50vh;
+    background-color: #000;
+    transform: translateY(100%); /* 初期状態: 下に完全に隠れている */
+}
+
+/* 目を閉じる（上下から中央へ） */
+.blink-overlay.closing::before {
+    transform: translateY(0); /* 上から下へ降りてくる（画面の上半分を覆う） */
+    transition: transform 0.3s ease-out;
+}
+
+.blink-overlay.closing::after {
+    transform: translateY(0); /* 下から上へ上がってくる（画面の下半分を覆う） */
+    transition: transform 0.3s ease-out;
+}
+
+/* 目を開く（中央から上下へ） */
+.blink-overlay.opening::before {
+    transform: translateY(-100%); /* 上へ戻る */
+    transition: transform 0.5s ease-in;
+}
+
+.blink-overlay.opening::after {
+    transform: translateY(100%); /* 下へ戻る */
+    transition: transform 0.5s ease-in;
+}
+
+/* ページ読み込み時の初期状態：目を閉じた状態（チラつき防止用） */
+.blink-overlay.initial-closed::before {
+    transform: translateY(0); /* 上半分を覆う */
+    transition: none; /* 初期表示なのでアニメーションなし */
+}
+
+.blink-overlay.initial-closed::after {
+    transform: translateY(0); /* 下半分を覆う */
+    transition: none; /* 初期表示なのでアニメーションなし */
+}
+
+/* URL parameter based blink transition (チラつき完全防止) */
+/* blink=open パラメータがある場合、ページ全体を最初から暗転 */
+html.will-open-eyes::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #000;
+    z-index: 99999; /* 全ての要素より上 */
+    pointer-events: none;
+}

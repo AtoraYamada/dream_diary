@@ -1,0 +1,87 @@
+/* Common Layout Styles */
+
+/* Awakening mode: blur viewport and body background */
+html.awakening .viewport-container {
+    filter: blur(20px) brightness(0.9);
+}
+
+html.awakening body::before {
+    filter: blur(20px) brightness(0.9);
+    /* Expand size to push blurred edges outside viewport */
+    top: -10%;
+    left: -10%;
+    width: 120%;
+    height: 120%;
+}
+
+/* After-door pages use pixel font (DotGothic16) */
+html.after-door body {
+    font-family: var(--font-pixel);
+}
+
+body {
+    margin: 0;
+    font-family: var(--font-serif);
+    color: var(--color-ink);
+    /* Asset: bg_stone_wall_dark.png (外壁背景: 暗い石壁) */
+    background-image: url('bg_stone_wall_dark.png');
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow: hidden;
+    cursor: default;
+}
+
+/* 余白（額縁）の背景 */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('bg_stone_wall_dark.png');
+    background-size: cover;
+    background-position: center;
+    z-index: -1;
+}
+
+/* Retro Shader (from 5.3) */
+.retro-shader {
+    filter: contrast(1.1) brightness(0.9) sepia(0.1); /* PS1風レトロフィルター効果 */
+    image-rendering: pixelated; /* ピクセルアートのようなレンダリング */
+}
+
+/* 4:3 viewport container (from 5.5) - Height maximized */
+.viewport-container {
+    position: relative;
+    height: 95vh; /* Maximize height (95% to leave small margin) */
+    width: calc(95vh * 4 / 3); /* Calculate width to maintain 4:3 ratio */
+    max-width: 95vw; /* Don't exceed viewport width */
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    background-color: black; /* メインコンテンツ領域のデフォルト背景 */
+    box-shadow: 0 0 50px rgba(0,0,0,0.8); /* 外壁との分離を強調する影 */
+    border: 2px solid var(--color-brass-dark); /* ビューポートのフレーム */
+    /* Retro shader effect (from 5.3) */
+    filter: contrast(1.1) brightness(0.9) sepia(0.1);
+    image-rendering: pixelated;
+}
+
+/* Common interactive element styles */
+.interactive-object {
+    cursor: pointer; /* インタラクティブな要素のカーソル */
+    transition: filter 0.2s ease-in-out; /* ホバー時のフィルター変化アニメーション */
+}
+
+.interactive-object:hover {
+    filter: brightness(1.2); /* 微かな発光効果 (CSS Filter: brightness) */
+}
+
+/* Utility classes */
+.hidden {
+    display: none !important;
+}
