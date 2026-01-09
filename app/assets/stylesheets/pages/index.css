@@ -1,0 +1,152 @@
+.audio-notice {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 10px 20px;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    border: 1px solid white;
+    font-family: var(--font-serif);
+    font-size: 14px;
+    z-index: 200;
+    text-align: center;
+}
+
+.mute-button {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 10px 15px;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: 1px solid white;
+    cursor: pointer;
+    font-family: var(--font-serif);
+    z-index: 200; /* Higher than door-area to avoid interference */
+}
+
+/* Hide audio notice and mute button during awakening mode */
+html.awakening .audio-notice,
+html.awakening .mute-button {
+    display: none;
+}
+
+/* Page-specific viewport background (トップページ専用背景) */
+html.top-page .viewport-container {
+    /* Asset: bg_top_forest_door.png (トップページ背景: 森の扉) */
+    background-image: url('bg_top_forest_door.png');
+    background-size: cover;
+    background-position: center;
+}
+
+.door-area {
+    /* Clickable area positioned over the door in bg_top_forest_door.png */
+    width: 300px;
+    height: 400px;
+    position: absolute;
+    left: 50%;
+    top: 65%;
+    transform: translate(-50%, -50%);
+    z-index: 100;
+    cursor: pointer;
+}
+.door-area:hover {
+    filter: brightness(1.2);
+}
+
+.scratchpad-trigger {
+    position: absolute;
+    bottom: 30px;
+    left: 30px;
+    width: 150px;
+    height: 100px;
+    background-image: url('img_scratchpad_paper.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    z-index: 90; /* Lower than door-area to avoid blocking it */
+    cursor: pointer;
+    transform: rotate(-8deg);
+    transition: opacity 0.3s ease-in-out;
+}
+.scratchpad-trigger:hover {
+    filter: brightness(1.1);
+}
+
+.scratchpad-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7); /* Darken background */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 300; /* Higher than door-area and mute-button */
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease-in-out;
+}
+.scratchpad-overlay.visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.scratchpad-content {
+    position: relative;
+    background-image: url('img_scratchpad_paper.png');
+    background-size: 100% 100%; /* Stretch to fit */
+    padding: 50px 40px 30px 40px; /* top right bottom left */
+    width: 600px; /* Fixed width */
+    height: 500px; /* Fixed height */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    transform: scale(0.95);
+    opacity: 0;
+    transition: transform 0.5s ease-in-out, opacity 0.5s ease-in-out;
+}
+.scratchpad-overlay.visible .scratchpad-content {
+    transform: scale(1);
+    opacity: 1;
+}
+
+.scratchpad-content textarea {
+    width: 90%;
+    flex-grow: 1; /* Fill available space */
+    background: transparent; /* No background, text sits on paper image */
+    border: none;
+    resize: none;
+    font-family: var(--font-serif); /* 素朴な明朝体 */
+    font-size: 22px;
+    font-weight: bold;
+    color: var(--color-ink);
+    outline: none;
+    line-height: 1.6;
+    padding: 10px;
+    overflow-y: auto; /* Allow internal scrolling if content overflows */
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+}
+.scratchpad-content textarea::-webkit-scrollbar {
+    display: none; /* Chrome, Safari and Opera */
+}
+.scratchpad-content textarea::placeholder {
+    color: var(--color-ink-light);
+    opacity: 1;
+}
+
+.scratchpad-close {
+    margin-top: 15px;
+    background-color: var(--color-ink-light);
+    color: var(--color-paper);
+    border: 1px solid var(--color-brass);
+    padding: 8px 20px;
+    cursor: pointer;
+    font-family: var(--font-serif);
+    font-size: 14px;
+    align-self: center;
+}

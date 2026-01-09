@@ -1,0 +1,15 @@
+/* Custom Cursors */
+
+/* カーソル画像適用 */
+/* 羽ペンカーソル（巻物展開中） */
+.scroll-middle.unfurl,
+.scroll-middle.unfurl textarea,
+.scroll-middle.unfurl input {
+    cursor: url('cursor_quill.png') 0 24, auto;
+}
+
+/* 鉛筆カーソル（トップページ入力中） */
+#scratchpad-textarea,
+#scratchpad-textarea:focus {
+    cursor: url('cursor_pencil.png') 0 24, auto;
+}

@@ -1,62 +1,10 @@
 <%# 夢の氾濫オーバーレイ - library.html.erb用 %>
 
-<style>
-    /* Dream Flood Overlay */
-    .dream-flood-overlay {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.7);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 15;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.5s ease-in-out;
-        background-color: rgba(75, 0, 130, 0.3); /* Placeholder for window/mirror distortion */
-        background-size: cover;
-        animation: distort-noise 1s infinite alternate; /* Continuous subtle distortion */
-    }
-
-    .dream-flood-overlay.active {
-        opacity: 1;
-        pointer-events: auto;
-    }
-
-    @keyframes distort-noise {
-        0% { filter: hue-rotate(0deg) blur(0px); }
-        100% { filter: hue-rotate(360deg) blur(1px); }
-    }
-
-    .dream-fragment-text {
-        color: var(--color-paper);
-        font-family: var(--font-pixel);
-        font-size: 20px;
-        text-align: center;
-        padding: 20px;
-        background-color: rgba(0, 0, 0, 0.5);
-        border: 2px solid var(--color-brass);
-        max-width: 80%;
-        position: relative;
-        /* Mirror text effect */
-        transform: scaleX(-1);
-    }
-
-    .dream-fragment-text:hover {
-        transform: scaleX(1); /* Flip to normal on hover */
-        filter: brightness(1.5);
-    }
-</style>
-
 <!-- Dream Flood Overlay -->
 <div class="dream-flood-overlay" id="dream-flood-overlay">
-    <div class="dream-fragment-text">
-        <p>「遠くで鐘が鳴っている」</p>
-        <p>「鍵は開いたままだ」</p>
-        <p>「しかし、誰もそこにはいない」</p>
-        <p>「霧が、深く、深く…」</p>
+    <div class="dream-fragment-container">
+        <div class="dream-fragment-text">
+            <p>遠くで鐘が鳴っている。鍵は開いたままだ。しかし、誰もそこにはいない。霧が、深く、深く広がっていく。足元に落ちた羽根が、ゆっくりと舞い上がる。壁に映る影は、いつも私より少し遅れて動く。窓の外には、見たことのない街が広がっている。誰かが名前を呼んでいるが、振り返ると誰もいない。階段を上っても上っても、同じ景色が繰り返される。手に持っていたはずのものが、いつの間にか消えている。時計の針が、逆回りに進んでいる。鏡の中の自分が、こちらを見て微笑んでいる。</p>
+        </div>
     </div>
 </div>

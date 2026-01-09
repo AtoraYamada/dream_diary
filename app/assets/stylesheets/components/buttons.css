@@ -1,0 +1,21 @@
+/* Button Components */
+
+/* UI elements */
+.action-button {
+    padding: 10px 40px;
+    font-family: var(--font-pixel);
+    font-size: 18px;
+    color: var(--color-paper);
+    background-color: var(--color-ink-light);
+    border: 2px solid var(--color-brass);
+    cursor: pointer;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.3); /* Asset: 汎用影テクスチャ */
+    transition: background-color 0.2s;
+    text-decoration: none; /* ボタンとしてスタイルされたアンカータグ用 */
+    display: inline-block;
+    text-align: center;
+}
+
+.action-button:hover {
+    background-color: var(--color-ink);
+}
