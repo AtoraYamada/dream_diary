@@ -21,7 +21,7 @@
     <%= yield :head %>
   </head>
 
-  <body>
+  <body <%= content_for?(:body_attributes) ? yield(:body_attributes).html_safe : '' %>>
     <%= yield %>
   </body>
 </html>
