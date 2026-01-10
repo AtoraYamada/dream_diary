@@ -95,28 +95,58 @@ PostgreSQL 15
 
 ### JavaScript構成
 
+**ES Module化（Importmap）** によるモジュール管理。ページ別に動的importで読み込み。
+
+```
+app/javascript/
+├── application.js         # エントリポイント（動的import）
+├── common.js              # 共通関数モジュール
+├── pages/                 # ページ別JS
+│   ├── index.js          # トップ画面
+│   ├── auth.js           # 認証画面
+│   ├── library.js        # 書斎画面
+│   └── list.js           # 一覧画面
+└── modals/                # モーダル共通ロジック
+    └── scroll_modal.js   # 巻物モーダル
+```
+
+#### ページ別モジュール（pages/）
+
 | ファイル | 役割 |
 |---------|------|
-| app/javascript/application.js | Turboエントリポイント |
-| app/javascript/common.js | 共通関数（瞬き、音声、LocalStorage） |
-| app/javascript/auth.js | 認証画面（ログイン、サインアップ） |
-| app/javascript/library.js | 書斎画面（本棚、窓、氾濫） |
-| app/javascript/list.js | 一覧画面（巻物、編集モーダル） |
-| app/javascript/detail.js | 詳細画面（本の開閉、ページめくり） |
-| app/javascript/create.js | 作成画面（巻物、タグサジェスト） |
+| index.js | トップ画面（森の扉、スクラッチパッド、目覚め演出） |
+| auth.js | 認証画面（ログイン、サインアップ、カード切替） |
+| library.js | 書斎画面（本棚、机の巻物、窓、鏡、夢の氾濫） |
+| list.js | 一覧画面（本棚閲覧、索引箱、詳細・編集モーダル） |
 
-### 共通関数（common.js）
+#### 共通モジュール（common.js）
+
+瞬き演出、音声、LocalStorage、ページ遷移などの全ページ共通関数を提供。
 
 | 関数 | 用途 |
 |------|------|
-| closeEyes(callback) | 瞬き演出（閉じる） |
-| openEyes() | 瞬き演出（開く） |
-| initiateBlinkTransition(callback) | 瞬き遷移 |
+| closeEyes(callback) | 瞬き演出（閉じる）+ 重複防止フラグ |
+| openEyes() | 瞬き演出（開く）+ フラグリセット |
+| initiateBlinkTransition(callback) | 同一ページ内瞬き遷移 |
+| checkAndOpenEyes() | ページ遷移後の開眼チェック |
+| navigateWithBlink(url, sfx) | 瞬き遷移＋画面遷移 |
+| logoutWithAwakeningEffect() | ログアウト（目覚め演出） |
 | playSound(sfxFileName) | 効果音再生 |
 | saveToLocalStorage(key, data) | LocalStorage保存 |
 | loadFromLocalStorage(key) | LocalStorage読込 |
-| navigateWithBlink(url, sfx) | 瞬き遷移＋画面遷移 |
-| apiRequest(path, options) | API呼び出しラッパー |
+| removeFromLocalStorage(key) | LocalStorage削除 |
+| toHiragana(str) | カタカナ→ひらがな変換 |
+
+#### モーダル共通モジュール（modals/scroll_modal.js）
+
+巻物モーダルの開閉演出、インクボトル選択などを提供。
+
+| 関数 | 用途 |
+|------|------|
+| openScrollModal(options) | 巻物モーダルを開く（瞬き演出付き） |
+| closeScrollModal(options) | 巻物モーダルを閉じる（瞬き演出付き） |
+| initializeInkBottleSelection() | インクボトル（感情）選択の初期化 |
+| emotionColors | 感情と色の対応定数 |
 
 ### CSS構成
 
