@@ -1,10 +1,18 @@
 // common.js - Global JavaScript functions and utilities
 
+// 瞬き中フラグ（重複実行を防ぐ）
+let isBlinking = false;
+
 /**
  * 閉眼アニメーションのみを実行（ページ遷移用）
  * @param {Function} callback - 閉眼完了後に実行する処理（通常はページ遷移）
  */
 function closeEyes(callback) {
+    if (isBlinking) {
+        return; // 既に瞬き中の場合は何もしない
+    }
+    isBlinking = true;
+
     const blinkOverlay = document.createElement('div');
     blinkOverlay.classList.add('blink-overlay');
     document.body.appendChild(blinkOverlay);
@@ -59,6 +67,7 @@ function openEyes() {
     // After opening animation completes (0.5s), remove the overlay
     setTimeout(() => {
         blinkOverlay.remove();
+        isBlinking = false; // 瞬き完了
     }, 500); // Corresponds to 0.5s opening transition
 }
 
@@ -86,7 +95,6 @@ function initiateBlinkTransition(callback) {
  * Refer to dream_diary_asset_list.md for SFX details.
  */
 function playSound(sfxFileName) {
-    console.log(`[SFX] Playing sound: ${sfxFileName}`);
     // In a real implementation, you would load and play audio here.
     // For prototype, just log to console.
 }
@@ -99,7 +107,6 @@ function playSound(sfxFileName) {
 function saveToLocalStorage(key, data) {
     try {
         localStorage.setItem(key, JSON.stringify(data));
-        console.log(`[LocalStorage] Data saved for key: ${key}`);
     } catch (e) {
         console.error(`[LocalStorage] Error saving data for key: ${key}`, e);
     }
@@ -127,7 +134,6 @@ function loadFromLocalStorage(key) {
 function removeFromLocalStorage(key) {
     try {
         localStorage.removeItem(key);
-        console.log(`[LocalStorage] Data removed for key: ${key}`);
     } catch (e) {
         console.error(`[LocalStorage] Error removing data for key: ${key}`, e);
     }
@@ -161,18 +167,22 @@ function checkAndOpenEyes() {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('blink') === 'open') {
         // html.will-open-eyesクラスがある場合、開眼アニメーションを実行
-        if (document.documentElement.classList.contains('will-open-eyes')) {
+        const hasWillOpenEyes = document.documentElement.classList.contains('will-open-eyes');
+        if (hasWillOpenEyes) {
             // 開眼アニメーション用のオーバーレイを作成（初期状態: 閉じている）
             const blinkOverlay = document.createElement('div');
-            blinkOverlay.classList.add('blink-overlay', 'initial-closed');
+            blinkOverlay.classList.add('blink-overlay', 'closing');
             document.body.appendChild(blinkOverlay);
 
-            // will-open-eyesクラスを削除（CSS暗転を解除）
-            document.documentElement.classList.remove('will-open-eyes');
+            // Force browser reflow
+            blinkOverlay.offsetHeight;
 
             // 次のフレームで開眼アニメーション開始
             requestAnimationFrame(() => {
-                blinkOverlay.classList.remove('initial-closed');
+                // will-open-eyesクラスを削除（開眼アニメーション開始と同時にCSS暗転を解除）
+                document.documentElement.classList.remove('will-open-eyes');
+
+                blinkOverlay.classList.remove('closing');
                 blinkOverlay.classList.add('opening');
 
                 // アニメーション完了後にオーバーレイを削除
@@ -214,263 +224,22 @@ function toHiragana(str) {
     });
 }
 
-/**
- * Initializes the Index Card Modal functionality.
- * This function should be called after the modal HTML is added to the DOM.
- * It sets up event listeners for tag selection, search, reset, match, and index plate navigation.
- */
-function initIndexCardModal() {
-    const cardList = document.getElementById('card-list');
-    const selectedTagsContainer = document.getElementById('selected-tags');
-    const tagFilterInput = document.getElementById('tag-filter-input');
-    const bodySearchInput = document.getElementById('body-search-input');
-    const matchButton = document.getElementById('match-button');
-    const resetButton = document.getElementById('reset-button');
-    const indexPlateContainer = document.querySelector('.index-plate-container');
+// ES Module exports
+export {
+    closeEyes,
+    openEyes,
+    initiateBlinkTransition,
+    playSound,
+    saveToLocalStorage,
+    loadFromLocalStorage,
+    removeFromLocalStorage,
+    navigateWithBlink,
+    checkAndOpenEyes,
+    logoutWithAwakeningEffect,
+    toHiragana
+};
 
-    let selectedTagNames = new Set();
-
-    // タグ絞り込み検索 (フィルタリングロジック)
-    function filterCards() {
-        const rawKeyword = tagFilterInput.value;
-        const normalizedKeyword = toHiragana(rawKeyword.toLowerCase());
-        const cards = cardList.querySelectorAll('.tag-card');
-
-        cards.forEach(card => {
-            if (normalizedKeyword === '') {
-                card.classList.remove('filtered-out');
-                return;
-            }
-
-            const name = card.dataset.tagName;
-            const yomi = card.dataset.tagYomi;
-
-            const normalizedName = toHiragana(name.toLowerCase());
-            const normalizedYomi = toHiragana(yomi.toLowerCase());
-
-            if (normalizedName.includes(normalizedKeyword) || normalizedYomi.includes(normalizedKeyword)) {
-                card.classList.remove('filtered-out');
-            } else {
-                card.classList.add('filtered-out');
-            }
-        });
-    }
-
-    tagFilterInput.addEventListener('keyup', filterCards);
-
-    // Update selected tags display (UI更新ロジック)
-    function updateSelectedTagsDisplay() {
-        const existingBadges = selectedTagsContainer.querySelectorAll('.tag-badge');
-        existingBadges.forEach(badge => badge.remove()); // Remove all except the label
-
-        const labelSpan = selectedTagsContainer.querySelector('.label');
-        if (!labelSpan) { // Add label if it doesn't exist
-            const newLabel = document.createElement('span');
-            newLabel.className = 'label';
-            newLabel.textContent = '選択中の索引：';
-            selectedTagsContainer.prepend(newLabel);
-        }
-
-        selectedTagNames.forEach(tagName => {
-            const badge = document.createElement('div');
-            badge.className = 'tag-badge';
-            badge.textContent = tagName;
-
-            const removeBtn = document.createElement('span');
-            removeBtn.className = 'remove-btn';
-            removeBtn.textContent = '×';
-            removeBtn.onclick = (event) => {
-                event.stopPropagation(); // Prevent card selection when clicking remove button
-                selectedTagNames.delete(tagName);
-
-                const cardToDeselect = cardList.querySelector(`.tag-card[data-tag-name="${tagName}"]`);
-                if(cardToDeselect) {
-                    cardToDeselect.classList.remove('selected');
-                }
-
-                updateSelectedTagsDisplay();
-                playSound('sfx_ui_confirm.wav'); // Asset: 選択・決定音 (タグ削除)
-            };
-            badge.appendChild(removeBtn);
-            selectedTagsContainer.appendChild(badge);
-        });
-    }
-
-    // Event listener for clicking a tag card (選択/ピン留め)
-    cardList.addEventListener('click', (event) => {
-        if (event.target.closest('.delete-tag-icon')) { // Ignore clicks on delete icon
-            return;
-        }
-        const card = event.target.closest('.tag-card');
-        if (card && !card.classList.contains('selected')) { // Card click is for selection only
-            const tagName = card.dataset.tagName;
-            card.classList.add('selected');
-            selectedTagNames.add(tagName);
-            updateSelectedTagsDisplay();
-            playSound('sfx_pin.wav'); // Asset: ピン留め音
-        }
-    });
-
-    // Reset button (開架) functionality
-    if (resetButton) {
-        resetButton.addEventListener('click', () => {
-            playSound('sfx_ui_confirm.wav'); // Asset: 選択・決定音 (全クリア)
-
-            // モーダル外クリック時と同じ処理を使用（瞬き演出 + モーダルクローズ）
-            const indexCardModal = document.getElementById('index-card-modal');
-            const indexBoxTrigger = document.getElementById('index-box-trigger');
-            initiateBlinkTransition(() => {
-                // closeEyesのコールバック：瞬き中にリセット処理を実行
-                tagFilterInput.value = '';
-                bodySearchInput.value = '';
-                selectedTagNames.clear();
-                const allCards = cardList.querySelectorAll('.tag-card');
-                allCards.forEach(card => card.classList.remove('selected', 'filtered-out'));
-                updateSelectedTagsDisplay();
-                filterCards();
-
-                console.log('Closing index card modal by reset button');
-                indexCardModal.classList.remove('visible');
-                if (indexBoxTrigger) indexBoxTrigger.style.display = 'block'; // Show trigger when modal closes
-            });
-        });
-    }
-
-    // Match button (抽出) functionality
-    if (matchButton) {
-        matchButton.addEventListener('click', () => {
-            console.log('--- 照合実行 ---');
-            console.log('選択中のタグ:', Array.from(selectedTagNames));
-            console.log('本文検索キーワード:', bodySearchInput.value);
-            playSound('sfx_ui_confirm.wav'); // Asset: 選択・決定音 (検索実行)
-
-            // モーダル外クリック時と同じ処理を使用
-            const indexCardModal = document.getElementById('index-card-modal');
-            const indexBoxTrigger = document.getElementById('index-box-trigger');
-            initiateBlinkTransition(() => {
-                console.log('Closing index card modal by match button');
-                indexCardModal.classList.remove('visible');
-                if (indexBoxTrigger) indexBoxTrigger.style.display = 'block'; // Show trigger when modal closes
-            });
-        });
-    }
-
-    // Delete icon event listener (タグの破棄アニメーションと削除)
-    cardList.querySelectorAll('.tag-card').forEach(tagCard => { // Attach to each tag-card for its delete icon
-        const deleteIcon = tagCard.querySelector('.delete-tag-icon');
-        if (deleteIcon) {
-            deleteIcon.addEventListener('click', (event) => {
-                event.stopPropagation(); // Prevent card selection when clicking delete icon
-                const tagName = tagCard.dataset.tagName;
-
-                tagCard.classList.add('is-deleting'); // Trigger deletion animation
-                playSound('sfx_paper_crumble.wav'); // Asset: 紙片の破棄音 (例: tag_card_deletion.mp3)
-
-                tagCard.addEventListener('animationend', () => {
-                    tagCard.remove();
-                    selectedTagNames.delete(tagName); // Remove from selected tags if it was there
-                    updateSelectedTagsDisplay();
-                    // No additional sound here as paper_crumble covers the "vanishing" effect
-                }, { once: true });
-            });
-        }
-    });
-
-    // Index plate jump functionality (文字で絞り込み)
-    if (indexPlateContainer) {
-        indexPlateContainer.addEventListener('click', (event) => {
-            const indexPlate = event.target.closest('.index-plate');
-            if (indexPlate) {
-                const char = indexPlate.textContent.toLowerCase();
-                const cards = cardList.querySelectorAll('.tag-card');
-                let targetCard = null;
-
-                // Find the first card starting with the selected character (or its yomi)
-                for (let i = 0; i < cards.length; i++) {
-                    const tagName = toHiragana(cards[i].dataset.tagName.toLowerCase());
-                    const tagYomi = toHiragana(cards[i].dataset.tagYomi.toLowerCase());
-
-                    if ((tagName.startsWith(char) || tagYomi.startsWith(char)) && !cards[i].classList.contains('filtered-out')) {
-                        targetCard = cards[i];
-                        break;
-                    }
-                }
-
-                if (targetCard) {
-                    cardList.scrollTo({
-                        top: targetCard.offsetTop - cardList.offsetTop,
-                        behavior: 'smooth'
-                    });
-                    playSound('sfx_tag_card_flip.wav'); // Asset: 索引カードをめくる音
-                }
-            }
-        });
-    }
-}
-
-/**
- * 本棚の表示を夢の数に応じて更新（書斎画面用）
- * @param {number} dreamCount - 夢の数
- */
-function updateBookshelfDisplay(dreamCount) {
-    const bookshelf = document.getElementById('bookshelf');
-    if (!bookshelf) {
-        console.warn('[updateBookshelfDisplay] bookshelf element not found');
-        return;
-    }
-
-    // 既存のクラスを削除
-    bookshelf.classList.remove(
-        'bookshelf-empty',
-        'bookshelf-small',
-        'bookshelf-medium',
-        'bookshelf-large'
-    );
-
-    // 夢の数に応じてクラスを追加
-    if (dreamCount === 0) {
-        bookshelf.classList.add('bookshelf-empty');
-        console.log('[updateBookshelfDisplay] Applied: bookshelf-empty (dreamCount: 0)');
-    } else if (dreamCount <= 3) {
-        bookshelf.classList.add('bookshelf-small');
-        console.log('[updateBookshelfDisplay] Applied: bookshelf-small (dreamCount:', dreamCount, ')');
-    } else if (dreamCount <= 7) {
-        bookshelf.classList.add('bookshelf-medium');
-        console.log('[updateBookshelfDisplay] Applied: bookshelf-medium (dreamCount:', dreamCount, ')');
-    } else {
-        bookshelf.classList.add('bookshelf-large');
-        console.log('[updateBookshelfDisplay] Applied: bookshelf-large (dreamCount:', dreamCount, ')');
-    }
-}
-
-/**
- * 縮小版巻物の表示をLocalStorageのメモ有無に応じて更新
- */
-function updateScrollMiniDisplay() {
-    const deskScrollMini = document.getElementById('desk-scroll-mini');
-    if (!deskScrollMini) {
-        console.warn('[updateScrollMiniDisplay] desk-scroll-mini element not found');
-        return;
-    }
-
-    // LocalStorageからメモを取得
-    const scratchpadData = loadFromLocalStorage('dream_diary_scratchpad');
-    const hasMemo = scratchpadData && scratchpadData.content && scratchpadData.content.trim() !== '';
-
-    // 既存のクラスを削除
-    deskScrollMini.classList.remove('has-memo', 'no-memo');
-
-    // メモ有無に応じてクラスを追加
-    if (hasMemo) {
-        deskScrollMini.classList.add('has-memo');
-        console.log('[updateScrollMiniDisplay] Applied: has-memo (LocalStorage scratchpad exists)');
-    } else {
-        deskScrollMini.classList.add('no-memo');
-        console.log('[updateScrollMiniDisplay] Applied: no-memo (LocalStorage scratchpad empty)');
-    }
-}
-
-// Export functions to global scope for use in inline scripts
+// Export functions to global scope for use in inline scripts (for backward compatibility)
 window.closeEyes = closeEyes;
 window.openEyes = openEyes;
 window.initiateBlinkTransition = initiateBlinkTransition;
@@ -482,20 +251,3 @@ window.navigateWithBlink = navigateWithBlink;
 window.checkAndOpenEyes = checkAndOpenEyes;
 window.logoutWithAwakeningEffect = logoutWithAwakeningEffect;
 window.toHiragana = toHiragana;
-window.initIndexCardModal = initIndexCardModal;
-window.updateBookshelfDisplay = updateBookshelfDisplay;
-window.updateScrollMiniDisplay = updateScrollMiniDisplay;
-
-// Initialize on page load
-document.addEventListener('DOMContentLoaded', () => {
-    // library.htmlが読み込まれた時にのみ実行
-    if (document.getElementById('bookshelf')) {
-        const dummyDreamCount = 4; // 仮の夢の数（0, 1-3, 4-7, 8以上で本棚画像が変わる）
-        updateBookshelfDisplay(dummyDreamCount);
-    }
-
-    // library.htmlが読み込まれた時にのみ実行
-    if (document.getElementById('desk-scroll-mini')) {
-        updateScrollMiniDisplay();
-    }
-});
