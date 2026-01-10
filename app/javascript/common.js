@@ -1,10 +1,18 @@
 // common.js - Global JavaScript functions and utilities
 
+// 瞬き中フラグ（重複実行を防ぐ）
+let isBlinking = false;
+
 /**
  * 閉眼アニメーションのみを実行（ページ遷移用）
  * @param {Function} callback - 閉眼完了後に実行する処理（通常はページ遷移）
  */
 function closeEyes(callback) {
+    if (isBlinking) {
+        return; // 既に瞬き中の場合は何もしない
+    }
+    isBlinking = true;
+
     const blinkOverlay = document.createElement('div');
     blinkOverlay.classList.add('blink-overlay');
     document.body.appendChild(blinkOverlay);
@@ -59,6 +67,7 @@ function openEyes() {
     // After opening animation completes (0.5s), remove the overlay
     setTimeout(() => {
         blinkOverlay.remove();
+        isBlinking = false; // 瞬き完了
     }, 500); // Corresponds to 0.5s opening transition
 }
 

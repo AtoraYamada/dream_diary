@@ -49,36 +49,45 @@ function initIndexCardModal() {
 
     // Update selected tags display (UI更新ロジック)
     function updateSelectedTagsDisplay() {
-        const existingBadges = selectedTagsContainer.querySelectorAll('.tag-badge');
-        existingBadges.forEach(badge => badge.remove()); // Remove all except the label
+        if (!selectedTagsContainer) return;
 
-        const labelSpan = selectedTagsContainer.querySelector('.label');
-        if (!labelSpan) { // Add label if it doesn't exist
-            const newLabel = document.createElement('span');
-            newLabel.className = 'label';
-            newLabel.textContent = '選択中の索引：';
-            selectedTagsContainer.prepend(newLabel);
+        // 既存のバッジのみを削除（ラベルは残す）
+        const existingBadges = selectedTagsContainer.querySelectorAll('.tag-badge');
+        existingBadges.forEach(badge => badge.remove());
+
+        // ラベルが存在しない場合のみ作成
+        let labelSpan = selectedTagsContainer.querySelector('.label');
+        if (!labelSpan) {
+            labelSpan = document.createElement('span');
+            labelSpan.className = 'label';
+            labelSpan.textContent = '選択中の索引：';
+            selectedTagsContainer.prepend(labelSpan);
         }
 
+        // 選択されたタグのバッジを作成
         selectedTagNames.forEach(tagName => {
             const badge = document.createElement('div');
             badge.className = 'tag-badge';
-            badge.textContent = tagName;
+
+            // テキストノードとして追加
+            const tagText = document.createTextNode(tagName);
+            badge.appendChild(tagText);
 
             const removeBtn = document.createElement('span');
             removeBtn.className = 'remove-btn';
             removeBtn.textContent = '×';
             removeBtn.onclick = (event) => {
-                event.stopPropagation(); // Prevent card selection when clicking remove button
+                event.stopPropagation();
                 selectedTagNames.delete(tagName);
 
-                const cardToDeselect = cardList.querySelector(`.tag-card[data-tag-name="${tagName}"]`);
+                // CSS.escapeを使用して特殊文字をエスケープ
+                const cardToDeselect = cardList.querySelector(`.tag-card[data-tag-name="${CSS.escape(tagName)}"]`);
                 if(cardToDeselect) {
                     cardToDeselect.classList.remove('selected');
                 }
 
                 updateSelectedTagsDisplay();
-                playSound('sfx_ui_confirm.wav'); // Asset: 選択・決定音 (タグ削除)
+                playSound('sfx_ui_confirm.wav');
             };
             badge.appendChild(removeBtn);
             selectedTagsContainer.appendChild(badge);
@@ -418,7 +427,6 @@ indexBoxTrigger.addEventListener('click', () => {
     initiateBlinkTransition(() => {
         indexBoxTrigger.style.display = 'none'; // Hide trigger when modal opens
         indexCardModal.classList.add('visible');
-        initIndexCardModal(); // Initialize modal functionality
     });
 });
 
@@ -433,3 +441,6 @@ indexCardModal.addEventListener('click', (event) => {
         });
     }
 });
+
+// Initialize index card modal once on page load
+initIndexCardModal();
