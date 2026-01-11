@@ -1,0 +1,13 @@
+ja:
+  devise:
+    failure:
+      invalid: "鍵の形が合いません。記憶が整合を拒んでいます。"
+      not_found_in_database: "鍵の形が合いません。記憶が整合を拒んでいます。"  # タイミング攻撃対策：invalidと統一
+      unauthenticated: "その場所へ辿り着くには、入館の手続きが必要です。"
+    sessions:
+      already_signed_out: "既に目覚めています。ここには貴方の影すら残っていません"
+  errors:
+    messages:
+      not_saved:
+        one: "蔵書目録に名を刻むことができません。1箇所の不備が登録を妨げています。"
+        other: "蔵書目録に名を刻むことができません。%{count}箇所の不備が登録を妨げています。"

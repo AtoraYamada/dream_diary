@@ -128,8 +128,8 @@ RSpec.describe User, type: :model do
       end
 
       context 'emailが既に存在する場合' do
-        let!(:existing_user) { create(:user, email: 'test@example.com') }
-        let(:duplicate_user) { build(:user, email: 'test@example.com') }
+        let!(:existing_user) { create(:user) }
+        let(:duplicate_user) { build(:user, email: existing_user.email) }
 
         it 'バリデーションエラーが発生する' do
           expect(duplicate_user).to be_invalid
@@ -206,6 +206,79 @@ RSpec.describe User, type: :model do
         it 'カスタムエラーメッセージが表示される' do
           user.valid?
           expect(user.errors.full_messages_for(:password)).to eq(['記憶の鍵 の強度が足りません（最小6文字）'])
+        end
+      end
+    end
+  end
+
+  # ========================================
+  # .find_for_database_authentication
+  # ========================================
+  describe '.find_for_database_authentication' do
+    # --- 正常系 ---
+    describe '正常系' do
+      context 'emailで検索する場合' do
+        let!(:user) { create(:user) }
+
+        it 'emailに一致するユーザーが見つかる' do
+          found_user = User.find_for_database_authentication(email: user.email)
+          expect(found_user).to eq(user)
+        end
+      end
+
+      context 'usernameで検索する場合' do
+        let!(:user) { create(:user) }
+
+        it 'usernameに一致するユーザーが見つかる' do
+          found_user = User.find_for_database_authentication(login: user.username)
+          expect(found_user).to eq(user)
+        end
+      end
+
+      context 'emailの大文字小文字を区別する場合' do
+        let!(:user1) { create(:user, email: 'casesensitive@example.com', username: 'caseuser1') }
+        let!(:user2) { create(:user, email: 'CaseSensitive@example.com', username: 'caseuser2') }
+
+        it 'casesensitive@example.comで検索するとuser1が見つかる' do
+          found_user = User.find_for_database_authentication(email: 'casesensitive@example.com')
+          expect(found_user).to eq(user1)
+        end
+
+        it 'CaseSensitive@example.comで検索するとuser2が見つかる' do
+          found_user = User.find_for_database_authentication(email: 'CaseSensitive@example.com')
+          expect(found_user).to eq(user2)
+        end
+      end
+
+      context 'usernameの大文字小文字を区別する場合' do
+        let!(:user1) { create(:user, username: 'caseusername') }
+        let!(:user2) { create(:user, username: 'CaseUsername') }
+
+        it 'caseusernameで検索するとuser1が見つかる' do
+          found_user = User.find_for_database_authentication(login: 'caseusername')
+          expect(found_user).to eq(user1)
+        end
+
+        it 'CaseUsernameで検索するとuser2が見つかる' do
+          found_user = User.find_for_database_authentication(login: 'CaseUsername')
+          expect(found_user).to eq(user2)
+        end
+      end
+    end
+
+    # --- 異常系 ---
+    describe '異常系' do
+      context '存在しないemailで検索する場合' do
+        it 'nilが返る' do
+          found_user = User.find_for_database_authentication(email: 'nonexistent@example.com')
+          expect(found_user).to be_nil
+        end
+      end
+
+      context '存在しないusernameで検索する場合' do
+        it 'nilが返る' do
+          found_user = User.find_for_database_authentication(login: 'nonexistent')
+          expect(found_user).to be_nil
         end
       end
     end

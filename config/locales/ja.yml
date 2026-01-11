@@ -100,3 +100,4 @@ ja:
   api:
     errors:
       not_found: "お探しのものは、ここには無いようです"
+      csrf_verification_failed: "禁じられた通路です。通行の印章が見当たりません。"
