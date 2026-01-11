@@ -34,7 +34,6 @@
 | ✅ | Dream モデル | `data.md` |
 | ✅ | Tag モデル | `data.md` |
 | ✅ | DreamTag モデル | `data.md` |
-| ⬜ | チュートリアル本自動生成（User作成時） | `screens/list.md` |
 
 ## Phase 3: API
 
@@ -75,19 +74,20 @@ UIとバックエンドとの繋ぎこみ。
 | ⬜ | Devise JSON API化 | `screens/auth.md`, Serenaメモリ`csrf_protection_decision.md` |
 | ⬜ | login（email OR username）対応 | `screens/auth.md` |
 | ⬜ | 認証UI連携 | `screens/auth.md` |
+| ⬜ | ログアウト機能連携 | `screens/logout.md` |
 | ⬜ | LocalStorage連携 | `screens/top.md`, `screens/create.md` |
 | ⬜ | 書斎画面連携 | `screens/library.md` |
 | ⬜ | 作成画面連携 | `screens/create.md` |
 | ⬜ | 編集画面連携 | `screens/edit.md` |
 | ⬜ | 一覧画面連携 | `screens/list.md` |
 | ⬜ | 詳細画面連携 | `screens/detail.md` |
+| ⬜ | チュートリアル本自動生成（User作成時） | `screens/list.md` |
 | ⬜ | 削除機能連携 | `screens/detail.md` |
 | ⬜ | タグサジェスト連携 | `screens/create.md` |
 | ⬜ | タグ一覧UI連携 | `screens/search.md` |
 | ⬜ | タグ削除UI連携 | `screens/search.md` |
 | ⬜ | 検索機能連携 | `screens/search.md` |
 | ⬜ | 夢の氾濫連携 | `screens/overflow.md` |
-| ⬜ | ログアウト機能連携 | `screens/logout.md` |
 
 ## Phase 6: 追加演出
 
@@ -113,6 +113,16 @@ UIとバックエンドとの繋ぎこみ。
 | ⬜ | E2Eテスト | `architecture.md` |
 | ⬜ | レスポンシブ対応 | - |
 | ⬜ | 最終調整 | - |
+
+---
+
+## Phase外タスク
+
+### セキュリティ強化
+
+| 状態 | タスク | 仕様書 |
+|------|--------|--------|
+| ⬜ | レート制限実装（ブルートフォース攻撃対策） | `architecture.md` - セキュリティ設計判断 |
 
 ---
 
