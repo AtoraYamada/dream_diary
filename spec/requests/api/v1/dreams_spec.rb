@@ -1,12 +1,30 @@
 require 'rails_helper'
 
 RSpec.describe 'Api::V1::Dreams', type: :request do
-  let(:user) { create(:user) }
+  let(:user) { create(:user, password: 'password123') }
   let(:other_user) { create(:user) }
+
+  # CSRFトークン取得ヘルパー
+  def fetch_csrf_token
+    get root_path
+    Nokogiri::HTML(response.body).at('meta[name="csrf-token"]')['content']
+  end
+
+  # ログインヘルパー
+  def api_login(user)
+    csrf_token = fetch_csrf_token
+    post '/api/v1/sessions', params: {
+      user: {
+        login: user.email,
+        password: 'password123'
+      }
+    }, headers: { 'X-CSRF-Token' => csrf_token }
+    fetch_csrf_token # ログイン後のトークンを再取得
+  end
 
   describe 'GET /api/v1/dreams' do
     context '認証済みユーザーの場合' do
-      before { sign_in user }
+      before { api_login(user) }
 
       context '夢が存在する場合' do
         let!(:dreams) { create_list(:dream, 15, user: user) }
@@ -88,7 +106,7 @@ RSpec.describe 'Api::V1::Dreams', type: :request do
     let!(:dream) { create(:dream, :with_tags, user: user) }
 
     context '認証済みユーザーの場合' do
-      before { sign_in user }
+      before { api_login(user) }
 
       it '夢の詳細を返すこと' do
         get "/api/v1/dreams/#{dream.id}"
@@ -137,7 +155,7 @@ RSpec.describe 'Api::V1::Dreams', type: :request do
 
   describe 'POST /api/v1/dreams' do
     context '認証済みユーザーの場合' do
-      before { sign_in user }
+      let(:csrf_token) { api_login(user) }
 
       context '有効なパラメータの場合' do
         let(:valid_params) do
@@ -154,7 +172,7 @@ RSpec.describe 'Api::V1::Dreams', type: :request do
 
         it '夢を作成できること' do
           expect do
-            post '/api/v1/dreams', params: valid_params
+            post '/api/v1/dreams', params: valid_params, headers: { 'X-CSRF-Token' => csrf_token }
           end.to change(Dream, :count).by(1)
 
           expect(response).to have_http_status(:created)
@@ -169,7 +187,7 @@ RSpec.describe 'Api::V1::Dreams', type: :request do
         context 'タグなしの場合' do
           it '夢を作成できること' do
             expect do
-              post '/api/v1/dreams', params: valid_params
+              post '/api/v1/dreams', params: valid_params, headers: { 'X-CSRF-Token' => csrf_token }
             end.to change(Dream, :count).by(1)
 
             expect(response).to have_http_status(:created)
@@ -190,7 +208,7 @@ RSpec.describe 'Api::V1::Dreams', type: :request do
 
           it 'タグを同時作成・関連付けできること' do
             expect do
-              post '/api/v1/dreams', params: params_with_tags
+              post '/api/v1/dreams', params: params_with_tags, headers: { 'X-CSRF-Token' => csrf_token }
             end.to change(Dream, :count).by(1).and change(Tag, :count).by(2)
 
             expect(response).to have_http_status(:created)
@@ -207,7 +225,7 @@ RSpec.describe 'Api::V1::Dreams', type: :request do
           end
 
           it '明晰夢として作成できること' do
-            post '/api/v1/dreams', params: lucid_params
+            post '/api/v1/dreams', params: lucid_params, headers: { 'X-CSRF-Token' => csrf_token }
 
             expect(response).to have_http_status(:created)
             created_dream = Dream.last
@@ -229,7 +247,7 @@ RSpec.describe 'Api::V1::Dreams', type: :request do
         end
 
         it '422を返すこと' do
-          post '/api/v1/dreams', params: invalid_params
+          post '/api/v1/dreams', params: invalid_params, headers: { 'X-CSRF-Token' => csrf_token }
 
           expect(response).to have_http_status(:unprocessable_content)
           json = response.parsed_body
@@ -240,7 +258,8 @@ RSpec.describe 'Api::V1::Dreams', type: :request do
 
     context '未認証ユーザーの場合' do
       it '401を返すこと' do
-        post '/api/v1/dreams', params: { dream: { title: 'test' } }
+        csrf_token = fetch_csrf_token
+        post '/api/v1/dreams', params: { dream: { title: 'test' } }, headers: { 'X-CSRF-Token' => csrf_token }
 
         expect(response).to have_http_status(:unauthorized)
       end
@@ -249,7 +268,7 @@ RSpec.describe 'Api::V1::Dreams', type: :request do
 
   describe 'PUT /api/v1/dreams/:id' do
     context '認証済みユーザーの場合' do
-      before { sign_in user }
+      let(:csrf_token) { api_login(user) }
 
       context '有効なパラメータの場合' do
         let!(:existing_tag) { create(:tag, name: '既存タグ', yomi: 'きぞんたぐ', user: user) }
@@ -272,7 +291,7 @@ RSpec.describe 'Api::V1::Dreams', type: :request do
         end
 
         it '夢を更新できること' do
-          put "/api/v1/dreams/#{dream_with_tag.id}", params: valid_params
+          put "/api/v1/dreams/#{dream_with_tag.id}", params: valid_params, headers: { 'X-CSRF-Token' => csrf_token }
 
           expect(response).to have_http_status(:ok)
           json = response.parsed_body
@@ -297,7 +316,7 @@ RSpec.describe 'Api::V1::Dreams', type: :request do
 
           it 'タグを追加できること' do
             expect do
-              put "/api/v1/dreams/#{dream_with_tag.id}", params: params_with_new_tag
+              put "/api/v1/dreams/#{dream_with_tag.id}", params: params_with_new_tag, headers: { 'X-CSRF-Token' => csrf_token }
             end.to change(Tag, :count).by(1)
 
             expect(response).to have_http_status(:ok)
@@ -316,7 +335,7 @@ RSpec.describe 'Api::V1::Dreams', type: :request do
           end
 
           it 'タグを削除できること' do
-            put "/api/v1/dreams/#{dream_with_tag.id}", params: params_without_tag
+            put "/api/v1/dreams/#{dream_with_tag.id}", params: params_without_tag, headers: { 'X-CSRF-Token' => csrf_token }
 
             expect(response).to have_http_status(:ok)
             json = response.parsed_body
@@ -337,7 +356,7 @@ RSpec.describe 'Api::V1::Dreams', type: :request do
         end
 
         it '422を返すこと' do
-          put "/api/v1/dreams/#{dream.id}", params: invalid_params
+          put "/api/v1/dreams/#{dream.id}", params: invalid_params, headers: { 'X-CSRF-Token' => csrf_token }
 
           expect(response).to have_http_status(:unprocessable_content)
         end
@@ -345,7 +364,7 @@ RSpec.describe 'Api::V1::Dreams', type: :request do
 
       context '存在しない夢の場合' do
         it '404を返すこと' do
-          put '/api/v1/dreams/99999', params: { dream: { title: 'test' } }
+          put '/api/v1/dreams/99999', params: { dream: { title: 'test' } }, headers: { 'X-CSRF-Token' => csrf_token }
 
           expect(response).to have_http_status(:not_found)
         end
@@ -356,7 +375,8 @@ RSpec.describe 'Api::V1::Dreams', type: :request do
       let!(:dream) { create(:dream, user: user) }
 
       it '401を返すこと' do
-        put "/api/v1/dreams/#{dream.id}", params: { dream: { title: 'test' } }
+        csrf_token = fetch_csrf_token
+        put "/api/v1/dreams/#{dream.id}", params: { dream: { title: 'test' } }, headers: { 'X-CSRF-Token' => csrf_token }
 
         expect(response).to have_http_status(:unauthorized)
       end
@@ -365,13 +385,12 @@ RSpec.describe 'Api::V1::Dreams', type: :request do
 
   describe 'DELETE /api/v1/dreams/:id' do
     let!(:dream) { create(:dream, user: user) }
+    let(:csrf_token) { api_login(user) }
 
     context '認証済みユーザーの場合' do
-      before { sign_in user }
-
       it '夢を削除できること' do
         expect do
-          delete "/api/v1/dreams/#{dream.id}"
+          delete "/api/v1/dreams/#{dream.id}", headers: { 'X-CSRF-Token' => csrf_token }
         end.to change(Dream, :count).by(-1)
 
         expect(response).to have_http_status(:no_content)
@@ -379,7 +398,7 @@ RSpec.describe 'Api::V1::Dreams', type: :request do
 
       context '存在しない夢の場合' do
         it '404を返すこと' do
-          delete '/api/v1/dreams/99999'
+          delete '/api/v1/dreams/99999', headers: { 'X-CSRF-Token' => csrf_token }
 
           expect(response).to have_http_status(:not_found)
         end
@@ -388,7 +407,8 @@ RSpec.describe 'Api::V1::Dreams', type: :request do
 
     context '未認証ユーザーの場合' do
       it '401を返すこと' do
-        delete "/api/v1/dreams/#{dream.id}"
+        csrf_token = fetch_csrf_token
+        delete "/api/v1/dreams/#{dream.id}", headers: { 'X-CSRF-Token' => csrf_token }
 
         expect(response).to have_http_status(:unauthorized)
       end
@@ -401,7 +421,7 @@ RSpec.describe 'Api::V1::Dreams', type: :request do
     let!(:seaside_dream) { create(:dream, title: '海辺の町', content: '太郎と花子', user: user) }
 
     context '認証済みユーザーの場合' do
-      before { sign_in user }
+      before { api_login(user) }
 
       context 'キーワード検索' do
         it 'タイトルで検索できること' do
@@ -492,7 +512,7 @@ RSpec.describe 'Api::V1::Dreams', type: :request do
     end
 
     context '認証済みユーザーの場合' do
-      before { sign_in user }
+      before { api_login(user) }
 
       context '夢が十分に存在する場合' do
         let!(:dreams) do

@@ -24,10 +24,19 @@ class User < ApplicationRecord
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :validatable
 
-  # アソシエーション
   has_many :dreams, dependent: :destroy
   has_many :tags, dependent: :destroy
 
-  # バリデーション
   validates :username, presence: true, uniqueness: true
+
+  # NOTE: authentication_keys=[:login]だが、Devise内部で:emailキーを使うこともあるため両方対応
+  def self.find_for_database_authentication(warden_conditions)
+    conditions = warden_conditions.dup
+    login = conditions.delete(:email) || conditions.delete(:login)
+
+    return find_by(conditions) unless login
+
+    # NOTE: case_insensitive_keys=[]によりセキュリティ・データ一貫性を優先（完全一致）
+    where(conditions).find_by(['email = :value OR username = :value', { value: login }])
+  end
 end

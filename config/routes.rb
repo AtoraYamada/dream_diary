@@ -13,6 +13,13 @@ Rails.application.routes.draw do
   # JSON API
   namespace :api do
     namespace :v1 do
+      # 認証API（devise_scopeでDeviseと連携）
+      devise_scope :user do
+        post 'sessions', to: 'sessions#create', defaults: { format: :json }
+        delete 'sessions', to: 'sessions#destroy', defaults: { format: :json }
+        post 'registrations', to: 'registrations#create', defaults: { format: :json }
+      end
+
       resources :dreams do
         collection do
           get :search
