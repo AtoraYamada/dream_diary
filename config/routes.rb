@@ -13,9 +13,6 @@ Rails.application.routes.draw do
   # JSON API
   namespace :api do
     namespace :v1 do
-      # CSRF トークン取得
-      resource :csrf, only: [:show], controller: 'csrf'
-
       # 認証API（devise_scopeでDeviseと連携）
       devise_scope :user do
         post 'sessions', to: 'sessions#create', defaults: { format: :json }

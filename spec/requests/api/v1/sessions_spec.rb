@@ -6,8 +6,8 @@ RSpec.describe 'Api::V1::Sessions', type: :request do
 
   # CSRFトークン取得ヘルパー
   def fetch_csrf_token
-    get '/api/v1/csrf'
-    response.parsed_body['csrf_token']
+    get root_path
+    Nokogiri::HTML(response.body).at('meta[name="csrf-token"]')['content']
   end
 
   describe 'POST /api/v1/sessions' do
