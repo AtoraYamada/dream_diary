@@ -1,10 +1,6 @@
 module Api
   module V1
     class DreamsController < BaseController
-      rescue_from ActionController::InvalidAuthenticityToken do
-        render json: { error: I18n.t('api.errors.csrf_verification_failed') }, status: :forbidden
-      end
-
       before_action :set_dream, only: [:show, :update, :destroy]
 
       # 定数定義

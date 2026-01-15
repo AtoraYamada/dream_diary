@@ -8,6 +8,10 @@ module Api
 
       protect_from_forgery with: :exception
 
+      rescue_from ActionController::InvalidAuthenticityToken do
+        render json: { error: I18n.t('api.errors.csrf_verification_failed') }, status: :forbidden
+      end
+
       # NOTE: URLに.json拡張子がなくてもJSON形式で応答するため
       before_action :set_default_format
       before_action :authenticate_user!
