@@ -2,7 +2,7 @@ require 'rails_helper'
 
 RSpec.describe 'Api::V1::Registrations', type: :request do
   # CSRFトークン取得ヘルパー
-  def get_csrf_token
+  def fetch_csrf_token
     get '/api/v1/csrf'
     response.parsed_body['csrf_token']
   end
@@ -12,7 +12,7 @@ RSpec.describe 'Api::V1::Registrations', type: :request do
     describe '正常系' do
       context '全ての必須項目が正しく入力されている場合' do
         it '新規ユーザーが作成され、カスタムメッセージが返る' do
-          csrf_token = get_csrf_token
+          csrf_token = fetch_csrf_token
 
           expect do
             post '/api/v1/registrations', params: {
@@ -43,7 +43,7 @@ RSpec.describe 'Api::V1::Registrations', type: :request do
         let!(:existing_user) { create(:user, username: 'existinguser') }
 
         it '422エラーとエラーメッセージが返る' do
-          csrf_token = get_csrf_token
+          csrf_token = fetch_csrf_token
 
           post '/api/v1/registrations', params: {
             user: {
@@ -65,7 +65,7 @@ RSpec.describe 'Api::V1::Registrations', type: :request do
         let!(:existing_user) { create(:user, email: 'existing@example.com') }
 
         it '422エラーとエラーメッセージが返る' do
-          csrf_token = get_csrf_token
+          csrf_token = fetch_csrf_token
 
           post '/api/v1/registrations', params: {
             user: {
@@ -85,7 +85,7 @@ RSpec.describe 'Api::V1::Registrations', type: :request do
 
       context 'passwordが6文字未満の場合' do
         it '422エラーとエラーメッセージが返る' do
-          csrf_token = get_csrf_token
+          csrf_token = fetch_csrf_token
 
           post '/api/v1/registrations', params: {
             user: {
@@ -105,7 +105,7 @@ RSpec.describe 'Api::V1::Registrations', type: :request do
 
       context 'password_confirmationが一致しない場合' do
         it '422エラーとエラーメッセージが返る' do
-          csrf_token = get_csrf_token
+          csrf_token = fetch_csrf_token
 
           post '/api/v1/registrations', params: {
             user: {
@@ -125,7 +125,7 @@ RSpec.describe 'Api::V1::Registrations', type: :request do
 
       context 'usernameが未入力の場合' do
         it '422エラーとエラーメッセージが返る' do
-          csrf_token = get_csrf_token
+          csrf_token = fetch_csrf_token
 
           post '/api/v1/registrations', params: {
             user: {
@@ -145,7 +145,7 @@ RSpec.describe 'Api::V1::Registrations', type: :request do
 
       context 'emailが未入力の場合' do
         it '422エラーとエラーメッセージが返る' do
-          csrf_token = get_csrf_token
+          csrf_token = fetch_csrf_token
 
           post '/api/v1/registrations', params: {
             user: {
@@ -165,7 +165,7 @@ RSpec.describe 'Api::V1::Registrations', type: :request do
 
       context 'passwordが未入力の場合' do
         it '422エラーとエラーメッセージが返る' do
-          csrf_token = get_csrf_token
+          csrf_token = fetch_csrf_token
 
           post '/api/v1/registrations', params: {
             user: {
@@ -185,7 +185,7 @@ RSpec.describe 'Api::V1::Registrations', type: :request do
 
       context 'emailが不正な形式の場合' do
         it '422エラーとエラーメッセージが返る' do
-          csrf_token = get_csrf_token
+          csrf_token = fetch_csrf_token
 
           post '/api/v1/registrations', params: {
             user: {

@@ -1,6 +1,10 @@
 module Api
   module V1
     class TagsController < BaseController
+      rescue_from ActionController::InvalidAuthenticityToken do
+        render json: { error: I18n.t('api.errors.csrf_verification_failed') }, status: :forbidden
+      end
+
       before_action :set_tag, only: [:destroy]
 
       # GET /api/v1/tags

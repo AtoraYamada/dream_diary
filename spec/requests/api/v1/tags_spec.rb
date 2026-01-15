@@ -1,12 +1,30 @@
 require 'rails_helper'
 
 RSpec.describe 'Api::V1::Tags', type: :request do
-  let(:user) { create(:user) }
+  let(:user) { create(:user, password: 'password123') }
   let(:other_user) { create(:user) }
+
+  # CSRFトークン取得ヘルパー
+  def fetch_csrf_token
+    get '/api/v1/csrf'
+    response.parsed_body['csrf_token']
+  end
+
+  # ログインヘルパー
+  def api_login(user)
+    csrf_token = fetch_csrf_token
+    post '/api/v1/sessions', params: {
+      user: {
+        login: user.email,
+        password: 'password123'
+      }
+    }, headers: { 'X-CSRF-Token' => csrf_token }
+    fetch_csrf_token # ログイン後のトークンを再取得
+  end
 
   describe 'GET /api/v1/tags' do
     context '認証済みユーザーの場合' do
-      before { sign_in user }
+      before { api_login(user) }
 
       context 'タグが存在する場合' do
         let!(:person_tag1) { create(:tag, name: '太郎', yomi: 'たろう', category: :person, user: user) }
@@ -109,7 +127,7 @@ RSpec.describe 'Api::V1::Tags', type: :request do
 
   describe 'GET /api/v1/tags/suggest' do
     context '認証済みユーザーの場合' do
-      before { sign_in user }
+      before { api_login(user) }
 
       context 'name での検索' do
         let!(:taro_tag) { create(:tag, name: '太郎', yomi: 'たろう', category: :person, user: user) }
@@ -218,13 +236,12 @@ RSpec.describe 'Api::V1::Tags', type: :request do
 
   describe 'DELETE /api/v1/tags/:id' do
     let!(:tag) { create(:tag, user: user) }
+    let(:csrf_token) { api_login(user) }
 
     context '認証済みユーザーの場合' do
-      before { sign_in user }
-
       it 'タグを削除できること' do
         expect do
-          delete "/api/v1/tags/#{tag.id}"
+          delete "/api/v1/tags/#{tag.id}", headers: { 'X-CSRF-Token' => csrf_token }
         end.to change(Tag, :count).by(-1)
 
         expect(response).to have_http_status(:no_content)
@@ -232,7 +249,7 @@ RSpec.describe 'Api::V1::Tags', type: :request do
 
       context '存在しないタグの場合' do
         it '404を返すこと' do
-          delete '/api/v1/tags/99999'
+          delete '/api/v1/tags/99999', headers: { 'X-CSRF-Token' => csrf_token }
 
           expect(response).to have_http_status(:not_found)
         end
@@ -242,16 +259,26 @@ RSpec.describe 'Api::V1::Tags', type: :request do
         let(:other_tag) { create(:tag, user: other_user) }
 
         it '404を返すこと' do
-          delete "/api/v1/tags/#{other_tag.id}"
+          delete "/api/v1/tags/#{other_tag.id}", headers: { 'X-CSRF-Token' => csrf_token }
 
           expect(response).to have_http_status(:not_found)
+        end
+      end
+
+      context 'CSRFトークンがない場合' do
+        it '403エラーが返る' do
+          api_login(user)
+          delete "/api/v1/tags/#{tag.id}"
+
+          expect(response).to have_http_status(:forbidden)
         end
       end
     end
 
     context '未認証ユーザーの場合' do
       it '401を返すこと' do
-        delete "/api/v1/tags/#{tag.id}"
+        csrf_token = fetch_csrf_token
+        delete "/api/v1/tags/#{tag.id}", headers: { 'X-CSRF-Token' => csrf_token }
 
         expect(response).to have_http_status(:unauthorized)
       end
