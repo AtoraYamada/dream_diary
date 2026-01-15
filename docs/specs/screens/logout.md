@@ -117,8 +117,8 @@
 
 ### バックエンド（API）
 
-- [ ] DELETE /users/sign_out（Devise Sessions#destroy）
-- [ ] JSON API化
+- [x] DELETE /users/sign_out（Devise Sessions#destroy）
+- [x] JSON API化
 
 ### フロントエンド
 

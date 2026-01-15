@@ -221,11 +221,11 @@
 
 ### バックエンド（API）
 
-- [ ] Deviseセットアップ
-- [ ] POST /users/sign_in（Sessions#create）
-- [ ] POST /users（Registrations#create）
-- [ ] Devise JSON API化
-- [ ] login（email OR username）対応
+- [x] Deviseセットアップ
+- [x] POST /users/sign_in（Sessions#create）
+- [x] POST /users（Registrations#create）
+- [x] Devise JSON API化
+- [x] login（email OR username）対応
 
 ### フロントエンド
 

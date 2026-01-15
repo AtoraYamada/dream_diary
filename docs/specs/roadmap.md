@@ -71,8 +71,8 @@ UIとバックエンドとの繋ぎこみ。
 
 | 状態 | タスク | 仕様書 |
 |------|--------|--------|
-| ⬜ | Devise JSON API化 | `screens/auth.md`, Serenaメモリ`csrf_protection_decision.md` |
-| ⬜ | login（email OR username）対応 | `screens/auth.md` |
+| ✅ | Devise JSON API化 | `screens/auth.md`, Serenaメモリ`csrf_protection_decision.md` |
+| ✅ | login（email OR username）対応 | `screens/auth.md` |
 | ⬜ | 認証UI連携 | `screens/auth.md` |
 | ⬜ | ログアウト機能連携 | `screens/logout.md` |
 | ⬜ | LocalStorage連携 | `screens/top.md`, `screens/create.md` |
