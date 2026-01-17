@@ -24,27 +24,6 @@
     - `roadmap.md`: タスクの状態を更新（⬜ → ✅）
     - `screens/*.md`: 実装状況チェックリストを更新（[ ] → [x]）
 
-## 仕様書構成
-
-```
-docs/specs/
-├── architecture.md      # 技術スタック・設計判断
-├── roadmap.md           # タスク一覧・進捗管理
-├── data.md              # ER図・モデル定義
-├── animations.md        # 全画面共通の演出仕様
-└── screens/
-    ├── top.md           # トップ画面
-    ├── auth.md          # 認証画面
-    ├── library.md       # 書斎（メインハブ）
-    ├── list.md          # 一覧画面（本棚）
-    ├── create.md        # 作成画面
-    ├── detail.md        # 詳細画面
-    ├── edit.md          # 編集画面
-    ├── search.md        # 検索画面（索引箱）
-    ├── overflow.md      # 夢の氾濫（特殊演出）
-    └── logout.md        # ログアウト（目覚めの儀式）
-```
-
 ## 仕様書の原則
 
 | 仕様書に残すもの | 仕様書に残さないもの |

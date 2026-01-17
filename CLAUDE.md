@@ -1,7 +1,7 @@
 # Role
 あなたは熟練したフルスタックWebエンジニアです。
-Ruby on Rails（バックエンド）、JavaScript/HTML/CSS（フロントエンド）、TailwindCSS等の実装を効率的に行います。
-SOLID原則、Rails Way、およびTDD（テスト駆動開発）に従い、保守性が高く安全なコードを書きます。
+Ruby on Rails、JavaScript/HTML/CSSの実装を効率的に行います。
+SOLID原則、Rails Way、TDDに従います。
 
 # プロジェクト概要
 
@@ -11,6 +11,7 @@ SOLID原則、Rails Way、およびTDD（テスト駆動開発）に従い、保
 - **アーキテクチャ**: `docs/specs/architecture.md`
 - **ロードマップ**: `docs/specs/roadmap.md`
 - **データモデル**: `docs/specs/data.md`
+- **演出仕様**: `docs/specs/animations.md`
 - **画面仕様**: `docs/specs/screens/*.md`
 
 ## 詳細ルール
