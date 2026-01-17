@@ -1,8 +1,6 @@
 ---
-paths:
-  - "app/**/*.rb"
-  - "spec/**/*.rb"
-  - "db/migrate/**/*.rb"
+name: rails-development
+description: Essential guide for all Rails work including planning, design, and implementation. Apply this when discussing Rails features, designing APIs, planning database schemas, writing specifications, architecting solutions, implementing code, or reviewing Rails applications. Always reference these principles before starting any Rails-related work.
 ---
 
 # Rails実装ガイドライン

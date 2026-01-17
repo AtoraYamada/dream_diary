@@ -1,6 +1,6 @@
 ---
-paths:
-  - "spec/**/*.rb"
+name: test-development
+description: Essential guide for all RSpec testing work including planning, design, and implementation. Apply this when discussing test strategies, designing test cases, planning test coverage, writing test specifications, implementing RSpec tests, or reviewing test quality. Always reference these principles before starting any testing-related work.
 ---
 
 # テスト規約
